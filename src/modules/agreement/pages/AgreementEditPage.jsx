@@ -39,6 +39,7 @@ const AgreementEditPage = () => {
     const [form] = Form.useForm();
     const [formLifeDamage] = Form.useForm();
     const [formHealthDamage] = Form.useForm();
+    const [formVehicleDamage] = Form.useForm();
     const {user} = useAuth()
     const {mutate, isPending} = usePostQuery({})
     const {mutate: patchRequest, isPending: isPendingPatch} = usePutQuery({})
@@ -48,8 +49,10 @@ const AgreementEditPage = () => {
     const [files, setFiles] = useState([]);
     const [lifeDamage, setLifeDamage] = useState([]);
     const [healthDamage, setHealthDamage] = useState([]);
+    const [vehicleDamage, setVehicleDamage] = useState([]);
     const [openLifeDamage, setOpenLifeDamage] = useState(false);
     const [openHealthDamage, setOpenHealthDamage] = useState(false);
+    const [openVehicleDamage, setOpenVehicleDamage] = useState(false);
     let {data, isLoading} = useGetAllQuery({
         key: [KEYS.claimShow, id],
         url: `${URLS.claimShow}?id=${id}`,
@@ -699,6 +702,106 @@ const AgreementEditPage = () => {
                         <Col span={24}>
                             <Table
                                 dataSource={healthDamage}
+                                columns={[
+                                    {
+                                        title: t('ПИНФЛ'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'passportData.pinfl')
+                                    },
+                                    {
+                                        title: t('Фамилия'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.lastname')
+                                    },
+                                    {
+                                        title: t('Имя'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.firstname')
+                                    },
+                                    {
+                                        title: t('Отчество'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.middlename')
+                                    },
+                                    {
+                                        title: t('Действия'),
+                                        dataIndex: '_id',
+                                        render: (text, record, index) => <Space>
+                                            <Button
+                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
+                                                danger
+                                                shape="circle" icon={<DeleteOutlined/>}/>
+                                        </Space>
+                                    }
+                                ]}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutter={16} align="middle">
+                        <Col span={20}>
+                            <Divider orientation={'left'}>{t('Добавление информации о вреде автомобилю:')}</Divider>
+                        </Col>
+                        <Col span={4} className={'text-right'}>
+                            <Form.Item label={' '}
+                            >
+                                <Button icon={<PlusOutlined/>} onClick={() => setOpenVehicleDamage(true)}>
+                                    {t('Добавить')}
+                                </Button>
+                            </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                            <Table
+                                dataSource={vehicleDamage}
+                                columns={[
+                                    {
+                                        title: t('ПИНФЛ'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'passportData.pinfl')
+                                    },
+                                    {
+                                        title: t('Фамилия'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.lastname')
+                                    },
+                                    {
+                                        title: t('Имя'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.firstname')
+                                    },
+                                    {
+                                        title: t('Отчество'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.middlename')
+                                    },
+                                    {
+                                        title: t('Действия'),
+                                        dataIndex: '_id',
+                                        render: (text, record, index) => <Space>
+                                            <Button
+                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
+                                                danger
+                                                shape="circle" icon={<DeleteOutlined/>}/>
+                                        </Space>
+                                    }
+                                ]}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutter={16} align="middle">
+                        <Col span={20}>
+                            <Divider orientation={'left'}>{t('Добавление информации о вреде имуществу:')}</Divider>
+                        </Col>
+                        <Col span={4} className={'text-right'}>
+                            <Form.Item label={' '}
+                            >
+                                <Button icon={<PlusOutlined/>} onClick={() => setOpenVehicleDamage(true)}>
+                                    {t('Добавить')}
+                                </Button>
+                            </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                            <Table
+                                dataSource={[]}
                                 columns={[
                                     {
                                         title: t('ПИНФЛ'),

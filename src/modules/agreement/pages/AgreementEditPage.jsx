@@ -28,7 +28,10 @@ import {KEYS} from "../../../constants/key";
 import {getSelectOptionsListFromData, stripNonDigits} from "../../../utils";
 import useAuth from "../../../hooks/auth/useAuth";
 import {request} from "../../../services/api";
-import {filter} from "lodash/collection";
+import VehicleDamage from "../components/vehicle-damage";
+import PropertyDamage from "../components/property-damage";
+import LifeDamage from "../components/life-damage";
+import HealthDamage from "../components/health-damage";
 
 const {Dragger} = Upload;
 
@@ -39,7 +42,6 @@ const AgreementEditPage = () => {
     const [form] = Form.useForm();
     const [formLifeDamage] = Form.useForm();
     const [formHealthDamage] = Form.useForm();
-    const [formVehicleDamage] = Form.useForm();
     const {user} = useAuth()
     const {mutate, isPending} = usePostQuery({})
     const {mutate: patchRequest, isPending: isPendingPatch} = usePutQuery({})
@@ -50,9 +52,7 @@ const AgreementEditPage = () => {
     const [lifeDamage, setLifeDamage] = useState([]);
     const [healthDamage, setHealthDamage] = useState([]);
     const [vehicleDamage, setVehicleDamage] = useState([]);
-    const [openLifeDamage, setOpenLifeDamage] = useState(false);
-    const [openHealthDamage, setOpenHealthDamage] = useState(false);
-    const [openVehicleDamage, setOpenVehicleDamage] = useState(false);
+    const [otherPropertyDamage, setOtherPropertyDamage] = useState([]);
     let {data, isLoading} = useGetAllQuery({
         key: [KEYS.claimShow, id],
         url: `${URLS.claimShow}?id=${id}`,
@@ -64,6 +64,7 @@ const AgreementEditPage = () => {
         url: URLS.residentType,
     });
     residentTypes = getSelectOptionsListFromData(get(residentTypes, `data.result`, []), 'id', 'name')
+
 
     const {data: country, isLoading: isLoadingCountry} = useGetAllQuery({
         key: KEYS.countries, url: `${URLS.countries}`
@@ -114,6 +115,7 @@ const AgreementEditPage = () => {
             }
         })
     }
+
 
     const getOrgInfo = () => {
         mutate({
@@ -182,7 +184,9 @@ const AgreementEditPage = () => {
                 },
                 photoVideoMaterials: files?.map(({_id, url}) => ({file: _id, url})),
                 lifeDamage,
-                healthDamage
+                healthDamage,
+                vehicleDamage,
+                otherPropertyDamage
             }
         }, {
             onSuccess: () => {
@@ -200,6 +204,12 @@ const AgreementEditPage = () => {
         }
         if (!isEmpty(get(data, 'data.result.healthDamage', []))) {
             setHealthDamage(get(data, 'data.result.healthDamage', []))
+        }
+        if (!isEmpty(get(data, 'data.result.vehicleDamage', []))) {
+            setVehicleDamage(get(data, 'data.result.vehicleDamage', []))
+        }
+        if (!isEmpty(get(data, 'data.result.otherPropertyDamage', []))) {
+            setOtherPropertyDamage(get(data, 'data.result.otherPropertyDamage', []))
         }
     }, [data])
 
@@ -606,7 +616,7 @@ const AgreementEditPage = () => {
                             <Form.Item label={' '}
                             >
                                 <Button icon={<PlusOutlined/>} onClick={() => setOpen(true)}>
-                                    {t('Добавить файл')}
+                                    {t('Добавить')}
                                 </Button>
                             </Form.Item>
                         </Col>
@@ -637,206 +647,12 @@ const AgreementEditPage = () => {
                             />
                         </Col>
                     </Row>
-                    <Row gutter={16} align="middle">
-                        <Col span={20}>
-                            <Divider orientation={'left'}>{t('Добавление информации о вреде жизни:')}</Divider>
-                        </Col>
-                        <Col span={4} className={'text-right'}>
-                            <Form.Item label={' '}
-                            >
-                                <Button icon={<PlusOutlined/>} onClick={() => setOpenLifeDamage(true)}>
-                                    {t('Добавить')}
-                                </Button>
-                            </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                            <Table
-                                dataSource={lifeDamage}
-                                columns={[
-                                    {
-                                        title: t('ПИНФЛ'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'passportData.pinfl')
-                                    },
-                                    {
-                                        title: t('Фамилия'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.lastname')
-                                    },
-                                    {
-                                        title: t('Имя'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.firstname')
-                                    },
-                                    {
-                                        title: t('Отчество'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.middlename')
-                                    },
-                                    {
-                                        title: t('Действия'),
-                                        dataIndex: '_id',
-                                        render: (text, record, index) => <Space>
-                                            <Button
-                                                onClick={() => setLifeDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
-                                                danger
-                                                shape="circle" icon={<DeleteOutlined/>}/>
-                                        </Space>
-                                    }
-                                ]}
-                            />
-                        </Col>
-                    </Row>
-                    <Row gutter={16} align="middle">
-                        <Col span={20}>
-                            <Divider orientation={'left'}>{t('Добавление информации о вреде здоровью:')}</Divider>
-                        </Col>
-                        <Col span={4} className={'text-right'}>
-                            <Form.Item label={' '}
-                            >
-                                <Button icon={<PlusOutlined/>} onClick={() => setOpenHealthDamage(true)}>
-                                    {t('Добавить')}
-                                </Button>
-                            </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                            <Table
-                                dataSource={healthDamage}
-                                columns={[
-                                    {
-                                        title: t('ПИНФЛ'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'passportData.pinfl')
-                                    },
-                                    {
-                                        title: t('Фамилия'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.lastname')
-                                    },
-                                    {
-                                        title: t('Имя'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.firstname')
-                                    },
-                                    {
-                                        title: t('Отчество'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.middlename')
-                                    },
-                                    {
-                                        title: t('Действия'),
-                                        dataIndex: '_id',
-                                        render: (text, record, index) => <Space>
-                                            <Button
-                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
-                                                danger
-                                                shape="circle" icon={<DeleteOutlined/>}/>
-                                        </Space>
-                                    }
-                                ]}
-                            />
-                        </Col>
-                    </Row>
-                    <Row gutter={16} align="middle">
-                        <Col span={20}>
-                            <Divider orientation={'left'}>{t('Добавление информации о вреде автомобилю:')}</Divider>
-                        </Col>
-                        <Col span={4} className={'text-right'}>
-                            <Form.Item label={' '}
-                            >
-                                <Button icon={<PlusOutlined/>} onClick={() => setOpenVehicleDamage(true)}>
-                                    {t('Добавить')}
-                                </Button>
-                            </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                            <Table
-                                dataSource={vehicleDamage}
-                                columns={[
-                                    {
-                                        title: t('ПИНФЛ'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'passportData.pinfl')
-                                    },
-                                    {
-                                        title: t('Фамилия'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.lastname')
-                                    },
-                                    {
-                                        title: t('Имя'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.firstname')
-                                    },
-                                    {
-                                        title: t('Отчество'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.middlename')
-                                    },
-                                    {
-                                        title: t('Действия'),
-                                        dataIndex: '_id',
-                                        render: (text, record, index) => <Space>
-                                            <Button
-                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
-                                                danger
-                                                shape="circle" icon={<DeleteOutlined/>}/>
-                                        </Space>
-                                    }
-                                ]}
-                            />
-                        </Col>
-                    </Row>
-                    <Row gutter={16} align="middle">
-                        <Col span={20}>
-                            <Divider orientation={'left'}>{t('Добавление информации о вреде имуществу:')}</Divider>
-                        </Col>
-                        <Col span={4} className={'text-right'}>
-                            <Form.Item label={' '}
-                            >
-                                <Button icon={<PlusOutlined/>} onClick={() => setOpenVehicleDamage(true)}>
-                                    {t('Добавить')}
-                                </Button>
-                            </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                            <Table
-                                dataSource={[]}
-                                columns={[
-                                    {
-                                        title: t('ПИНФЛ'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'passportData.pinfl')
-                                    },
-                                    {
-                                        title: t('Фамилия'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.lastname')
-                                    },
-                                    {
-                                        title: t('Имя'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.firstname')
-                                    },
-                                    {
-                                        title: t('Отчество'),
-                                        dataIndex: 'person',
-                                        render: (text) => get(text, 'fullName.middlename')
-                                    },
-                                    {
-                                        title: t('Действия'),
-                                        dataIndex: '_id',
-                                        render: (text, record, index) => <Space>
-                                            <Button
-                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
-                                                danger
-                                                shape="circle" icon={<DeleteOutlined/>}/>
-                                        </Space>
-                                    }
-                                ]}
-                            />
-                        </Col>
-                    </Row>
+
+                    <LifeDamage setLifeDamage={setLifeDamage} lifeDamage={lifeDamage}/>
+                    <HealthDamage healthDamage={healthDamage} setHealthDamage={setHealthDamage}/>
+                    <VehicleDamage setVehicleDamage={setVehicleDamage} vehicleDamage={vehicleDamage}/>
+                    <PropertyDamage otherPropertyDamage={otherPropertyDamage}
+                                    setOtherPropertyDamage={setOtherPropertyDamage}/>
                     <Flex className={'mt-6'}>
                         <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
                             {t('Сохранять')}
@@ -864,355 +680,8 @@ const AgreementEditPage = () => {
                     </Dragger>
                 </div>
             </Drawer>
-            <Drawer width={1200} title={t('Добавление информации о вреде жизни')} open={openLifeDamage}
-                    onClose={() => setOpenLifeDamage(false)}>
-                <Spin spinning={isPending}>
-                    <Form
-                        name="life-damage"
-                        layout="vertical"
-                        onFinish={(_attrs) => {
-                            setLifeDamage(prev => [...prev, _attrs]);
-                            setOpenLifeDamage(false)
-                        }}
-                        form={formLifeDamage}
-                    >
-                        <Row gutter={16}>
-                            <Col xs={4}>
-                                <Form.Item
-                                    label={t("Серия паспорта")}
-                                    name={['person', 'passportData', 'seria']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'aa'} className={'uppercase'} placeholder={'__'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item
-                                    label={t("Номер паспорта")}
-                                    name={['person', 'passportData', 'number']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'9999999'} placeholder={'_______'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={8}>
-                                <Form.Item
-                                    label={t("ПИНФЛ")}
-                                    name={['person', 'passportData', 'pinfl']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'99999999999999'} placeholder={'______________'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item label={' '}>
-                                    <Button loading={isPending} icon={<ReloadOutlined/>}
-                                            onClick={() => getPersonInfo(formLifeDamage, ['person'])}
-                                            type="primary">
-                                        {t('Найти')}
-                                    </Button>
-                                </Form.Item>
-                            </Col>
-                            <Col>
-                                <Form.Item name={['person', 'birthDate']} label={t('Дата рождения')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'lastname']} label={t('Фамилия')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'firstname']} label={t('Имя')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'middlename']} label={t('Отчество')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'residentType']} label={t('Резидент')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={residentTypes}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item initialValue={210} name={['person', 'countryId']}
-                                           label={t('Страна')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={countryList}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'gender']} label={t('Пол')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={[
-                                        {
-                                            value: 'm',
-                                            label: t('мужчина')
-                                        },
-                                        {
-                                            value: 'f',
-                                            label: t('женщина')
-                                        }
-                                    ]}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'regionId']} label={t('Область')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={regions}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'districtId']} label={t('Район')}
-                                >
-                                    <Select options={districts}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={12}>
-                                <Form.Item name={['person', 'address']} label={t('Адрес')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'driverLicenseSeria']}
-                                           label={t(' Серия вод. удостоверения')}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'driverLicenseNumber']}
-                                           label={t('Номер вод. удостоверения')}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item
-                                    label={t("Телефон")}
-                                    name={['person', 'phone']}
-                                    getValueFromEvent={(e) => stripNonDigits(e.target.value)}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={"+\\9\\98 (99) 999-99-99"}/>
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item
-                                    label={t("Электронная почта")}
-                                    name={['person', 'email']}
-                                    rules={[
-                                        {
-                                            type: 'email',
-                                            message: t('Введите действительный адрес электронной почты'),
-                                        },
-                                    ]}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={24}>
-                                <Form.Item name={['deathCertificate']} label={t('Свидетельство о смерти')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <Input.TextArea/>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Flex className={'mt-6'}>
-                            <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
-                                {t('Добавить')}
-                            </Button>
-                            <Button danger type={'primary'} onClick={() => setOpenLifeDamage(false)}>
-                                {t('Отмена')}
-                            </Button>
-                        </Flex>
-                    </Form>
-                </Spin>
-            </Drawer>
 
 
-            <Drawer width={1200} title={t('Добавление информации о вреде здоровью')} open={openHealthDamage}
-                    onClose={() => setOpenHealthDamage(false)}>
-                <Spin spinning={isPending}>
-                    <Form
-                        name="health-damage"
-                        layout="vertical"
-                        onFinish={(_attrs) => {
-                            setHealthDamage(prev => [...prev, _attrs]);
-                            setOpenHealthDamage(false)
-                        }}
-                        form={formHealthDamage}
-                    >
-                        <Row gutter={16}>
-                            <Col xs={4}>
-                                <Form.Item
-                                    label={t("Серия паспорта")}
-                                    name={['person', 'passportData', 'seria']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'aa'} className={'uppercase'} placeholder={'__'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item
-                                    label={t("Номер паспорта")}
-                                    name={['person', 'passportData', 'number']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'9999999'} placeholder={'_______'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={8}>
-                                <Form.Item
-                                    label={t("ПИНФЛ")}
-                                    name={['person', 'passportData', 'pinfl']}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={'99999999999999'} placeholder={'______________'}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item label={' '}>
-                                    <Button loading={isPending} icon={<ReloadOutlined/>}
-                                            onClick={() => getPersonInfo(formHealthDamage, ['person'])}
-                                            type="primary">
-                                        {t('Найти')}
-                                    </Button>
-                                </Form.Item>
-                            </Col>
-                            <Col>
-                                <Form.Item name={['person', 'birthDate']} label={t('Дата рождения')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'lastname']} label={t('Фамилия')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'firstname']} label={t('Имя')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'fullName', 'middlename']} label={t('Отчество')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'residentType']} label={t('Резидент')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={residentTypes}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item initialValue={210} name={['person', 'countryId']}
-                                           label={t('Страна')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={countryList}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'gender']} label={t('Пол')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={[
-                                        {
-                                            value: 'm',
-                                            label: t('мужчина')
-                                        },
-                                        {
-                                            value: 'f',
-                                            label: t('женщина')
-                                        }
-                                    ]}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'regionId']} label={t('Область')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <Select options={regions}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'districtId']} label={t('Район')}
-                                >
-                                    <Select options={districts}/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={12}>
-                                <Form.Item name={['person', 'address']} label={t('Адрес')}
-                                           rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'driverLicenseSeria']}
-                                           label={t(' Серия вод. удостоверения')}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col xs={6}>
-                                <Form.Item name={['person', 'driverLicenseNumber']}
-                                           label={t('Номер вод. удостоверения')}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item
-                                    label={t("Телефон")}
-                                    name={['person', 'phone']}
-                                    getValueFromEvent={(e) => stripNonDigits(e.target.value)}
-                                    rules={[{required: true, message: t('Обязательное поле')}]}
-                                >
-                                    <MaskedInput mask={"+\\9\\98 (99) 999-99-99"}/>
-                                </Form.Item>
-                            </Col>
-                            <Col span={6}>
-                                <Form.Item
-                                    label={t("Электронная почта")}
-                                    name={['person', 'email']}
-                                    rules={[
-                                        {
-                                            type: 'email',
-                                            message: t('Введите действительный адрес электронной почты'),
-                                        },
-                                    ]}
-                                >
-                                    <Input/>
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                        <Flex className={'mt-6'}>
-                            <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
-                                {t('Добавить')}
-                            </Button>
-                            <Button danger type={'primary'} onClick={() => setOpenHealthDamage(false)}>
-                                {t('Отмена')}
-                            </Button>
-                        </Flex>
-                    </Form>
-                </Spin>
-            </Drawer>
         </>
 
     );

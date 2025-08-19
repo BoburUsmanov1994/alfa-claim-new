@@ -102,7 +102,7 @@ export const URLS = {
     countries: 'api/references/countries',
     areaTypes: 'api/references/area-types',
     okeds: 'api/references/okeds',
-    vehicleType: 'api/references/vehicle-type',
+    vehicleType: 'api/references/vehicle-types',
     propertyType: 'api/references/property-type',
     propertyRightType: 'api/references/property-right-type',
     agriculturalType: 'api/references/agricultural-type',

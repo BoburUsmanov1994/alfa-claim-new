@@ -11,7 +11,7 @@ import {KEYS} from "../../../../constants/key";
 import {URLS} from "../../../../constants/url";
 import dayjs from "dayjs";
 
-const Index = ({lifeDamage=[],setLifeDamage}) => {
+const Index = ({lifeDamage = [], setLifeDamage,title='Добавление информации о вреде жизни'}) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
@@ -40,7 +40,7 @@ const Index = ({lifeDamage=[],setLifeDamage}) => {
         url: URLS.districts,
         params: {
             params: {
-                region:  get(person, 'regionId')
+                region: get(person, 'regionId')
             }
         },
         enabled: !!(get(person, 'regionId'))
@@ -72,7 +72,7 @@ const Index = ({lifeDamage=[],setLifeDamage}) => {
         <>
             <Row gutter={16} align="middle">
                 <Col span={20}>
-                    <Divider orientation={'left'}>{t('Добавление информации о вреде жизни:')}</Divider>
+                    <Divider orientation={'left'}>{t(title)}</Divider>
                 </Col>
                 <Col span={4} className={'text-right'}>
                     <Form.Item label={' '}
@@ -84,6 +84,7 @@ const Index = ({lifeDamage=[],setLifeDamage}) => {
                 </Col>
                 <Col span={24}>
                     <Table
+                        className={'mb-4'}
                         dataSource={lifeDamage}
                         columns={[
                             {

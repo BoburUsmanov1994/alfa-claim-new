@@ -8,6 +8,7 @@ import PrivateRoute from "../services/auth/PrivateRoute";
 import AgreementsPage from "../modules/agreement/pages/AgreementsPage";
 import AgreementCreatePage from "../modules/agreement/pages/AgreementCreatePage";
 import AgreementEditPage from "../modules/agreement/pages/AgreementEditPage";
+import AgreementViewPage from "../modules/agreement/pages/AgreementViewPage";
 
 const Index = () => {
     return (
@@ -44,6 +45,16 @@ const Index = () => {
                             <PrivateRoute>
                                 <MainLayout>
                                     <AgreementEditPage/>
+                                </MainLayout>
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/claims/view/:id"
+                        element={
+                            <PrivateRoute>
+                                <MainLayout>
+                                    <AgreementViewPage/>
                                 </MainLayout>
                             </PrivateRoute>
                         }

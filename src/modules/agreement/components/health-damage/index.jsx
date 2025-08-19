@@ -11,7 +11,7 @@ import {URLS} from "../../../../constants/url";
 import dayjs from "dayjs";
 import {KEYS} from "../../../../constants/key";
 
-const Index = ({healthDamage=[],setHealthDamage}) => {
+const Index = ({healthDamage=[],setHealthDamage,title='Добавление информации о вреде здоровью:'}) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
@@ -72,7 +72,7 @@ const Index = ({healthDamage=[],setHealthDamage}) => {
         <>
             <Row gutter={16} align="middle">
                 <Col span={20}>
-                    <Divider orientation={'left'}>{t('Добавление информации о вреде здоровью:')}</Divider>
+                    <Divider orientation={'left'}>{t(title)}</Divider>
                 </Col>
                 <Col span={4} className={'text-right'}>
                     <Form.Item label={' '}
@@ -84,6 +84,7 @@ const Index = ({healthDamage=[],setHealthDamage}) => {
                 </Col>
                 <Col span={24}>
                     <Table
+                        className={'mb-4'}
                         dataSource={healthDamage}
                         columns={[
                             {

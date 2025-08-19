@@ -155,12 +155,15 @@ const AgreementCreatePage = () => {
     }
 
     const onFinish = ({client, eventCircumstances, ...rest}) => {
-        if(submitType.current) {
+        if (submitType.current) {
             mutate({
                 url: URLS.claimCreate,
                 attributes: {
                     ...rest,
-                    eventCircumstances: {...eventCircumstances, countryId: String(get(eventCircumstances, 'countryId'))},
+                    eventCircumstances: {
+                        ...eventCircumstances,
+                        countryId: String(get(eventCircumstances, 'countryId'))
+                    },
                     photoVideoMaterials: files?.map(({_id, url}) => ({file: _id, url}))
                 }
             }, {
@@ -169,12 +172,15 @@ const AgreementCreatePage = () => {
                     navigate('/agreements')
                 }
             })
-        }else{
+        } else {
             mutate({
                 url: URLS.claimDraft,
                 attributes: {
                     ...rest,
-                    eventCircumstances: {...eventCircumstances, countryId: String(get(eventCircumstances, 'countryId'))},
+                    eventCircumstances: {
+                        ...eventCircumstances,
+                        countryId: String(get(eventCircumstances, 'countryId'))
+                    },
                     photoVideoMaterials: files?.map(({_id, url}) => ({file: _id, url}))
                 }
             }, {
@@ -608,10 +614,12 @@ const AgreementCreatePage = () => {
                         </Col>
                     </Row>
                     <Flex className={'mt-6'}>
-                        <Button onClick={() => (submitType.current = false)} type="default" htmlType={'submit'} name={'draft'}>
+                        <Button onClick={() => (submitType.current = false)} type="default" htmlType={'submit'}
+                                name={'draft'}>
                             {t('Сохранить как черновик')}
                         </Button>
-                        <Button onClick={() => (submitType.current = true)} className={'mx-2'} type="primary" htmlType={'submit'} name={'save'}>
+                        <Button onClick={() => (submitType.current = true)} className={'mx-3'} type="primary"
+                                htmlType={'submit'} name={'save'}>
                             {t('Подать заявление')}
                         </Button>
                         <Button danger type={'primary'} onClick={() => navigate('/claims')}>

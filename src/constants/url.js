@@ -226,8 +226,10 @@ export const URLS = {
     osgorReport: 'api/osgor/report',
     eimzoLogin: 'api/eimzo/login',
     claimList: 'api/claim/list',
+    claimExternalList: 'api/claim/list-external',
     claimCreate: 'api/claim/create',
     claimEdit: 'api/claim/edit',
     claimDraft: 'api/claim/create/draft',
     claimShow: 'api/claim/show',
+    claimHistory: 'api/claim/history',
 }

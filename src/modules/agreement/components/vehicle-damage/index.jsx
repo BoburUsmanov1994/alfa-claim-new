@@ -29,6 +29,7 @@ import dayjs from "dayjs";
 const Index = ({
                    vehicleDamage = [],
                    setVehicleDamage,
+                   title = 'Добавление информации о вреде автомобилю:'
                }) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
@@ -142,7 +143,7 @@ const Index = ({
         <>
             <Row gutter={16} align="middle">
                 <Col span={20}>
-                    <Divider orientation={'left'}>{t('Добавление информации о вреде автомобилю:')}</Divider>
+                    <Divider orientation={'left'}>{t(title)}</Divider>
                 </Col>
                 <Col span={4} className={'text-right'}>
                     <Form.Item label={' '}
@@ -154,6 +155,7 @@ const Index = ({
                 </Col>
                 <Col span={24}>
                     <Table
+                        className={'mb-4'}
                         dataSource={vehicleDamage}
                         columns={[
                             {

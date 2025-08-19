@@ -215,4 +215,5 @@ export const KEYS = {
     claimCreate:'claimCreate',
     claimDraft:'claimDraft',
     claimShow:'claimShow',
+    claimHistory:'claimHistory',
 }

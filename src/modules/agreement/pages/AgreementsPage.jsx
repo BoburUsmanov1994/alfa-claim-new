@@ -48,13 +48,13 @@ const AgreementsPage = () => {
                         },
                         {
                             title: t('Страхователь'),
-                            dataIndex: 'applicant',
-                            render: (text) => get(text, 'person.fullName.lastname') ? `${get(text, 'person.fullName.lastname')} ${get(text, 'person.fullName.firstname')} ${get(text, 'person.fullName.middlename')}` : get(text, 'organization.name'),
-                            width: 300
+                            dataIndex: 'agreementNumber',
                         },
                         {
                             title: t('Заявитель'),
-                            dataIndex: 'agreementNumber',
+                            dataIndex: 'applicant',
+                            render: (text) => get(text, 'person.fullName.lastname') ? `${get(text, 'person.fullName.lastname')} ${get(text, 'person.fullName.firstname')} ${get(text, 'person.fullName.middlename')}` : get(text, 'organization.name'),
+                            width: 300
                         },
                         {
                             title: t('Виновное лицо'),
@@ -74,7 +74,7 @@ const AgreementsPage = () => {
                             title: t('Действия'),
                             dataIndex: '_id',
                             render: (_id) => <Space>
-                                <Button className={'cursor-pointer'} icon={<EyeOutlined/>}>{t('Детали')}</Button>
+                                <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'} icon={<EyeOutlined/>}>{t('Детали')}</Button>
                                 <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
                                         icon={<EditOutlined/>}>{t('Редактировать')}</Button>
                                 <Button className={'cursor-pointer'} icon={<FileOutlined/>}>{t('Документы')}</Button>
@@ -121,7 +121,7 @@ const AgreementsPage = () => {
                             dataIndex: 'agreementNumber',
                         },
                     ]}
-                    url={URLS.claimList}/>
+                    url={URLS.claimExternalList}/>
             </PageHeader>
         </>
     );

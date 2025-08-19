@@ -26,7 +26,7 @@ import {URLS} from "../../../../constants/url";
 import dayjs from "dayjs";
 import {KEYS} from "../../../../constants/key";
 
-const Index = ({otherPropertyDamage=[],setOtherPropertyDamage}) => {
+const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добавление информации о вреде имуществу:'}) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
@@ -110,7 +110,7 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage}) => {
         <>
             <Row gutter={16} align="middle">
                 <Col span={20}>
-                    <Divider orientation={'left'}>{t('Добавление информации о вреде имуществу:')}</Divider>
+                    <Divider orientation={'left'}>{t(title)}</Divider>
                 </Col>
                 <Col span={4} className={'text-right'}>
                     <Form.Item label={' '}

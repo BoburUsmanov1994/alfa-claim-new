@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {PageHeader} from "@ant-design/pro-components";
 import {useTranslation} from "react-i18next";
 import {
@@ -38,6 +38,7 @@ const AgreementEditPage = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
     const [formLifeDamage] = Form.useForm();
+    const [formHealthDamage] = Form.useForm();
     const {user} = useAuth()
     const {mutate, isPending} = usePostQuery({})
     const {mutate: patchRequest, isPending: isPendingPatch} = usePutQuery({})
@@ -46,7 +47,9 @@ const AgreementEditPage = () => {
     const [open, setOpen] = useState(false);
     const [files, setFiles] = useState([]);
     const [lifeDamage, setLifeDamage] = useState([]);
+    const [healthDamage, setHealthDamage] = useState([]);
     const [openLifeDamage, setOpenLifeDamage] = useState(false);
+    const [openHealthDamage, setOpenHealthDamage] = useState(false);
     let {data, isLoading} = useGetAllQuery({
         key: [KEYS.claimShow, id],
         url: `${URLS.claimShow}?id=${id}`,
@@ -175,7 +178,8 @@ const AgreementEditPage = () => {
                     countryId: String(get(eventCircumstances, 'countryId'))
                 },
                 photoVideoMaterials: files?.map(({_id, url}) => ({file: _id, url})),
-                lifeDamage
+                lifeDamage,
+                healthDamage
             }
         }, {
             onSuccess: () => {
@@ -191,12 +195,15 @@ const AgreementEditPage = () => {
         if (!isEmpty(get(data, 'data.result.lifeDamage', []))) {
             setLifeDamage(get(data, 'data.result.lifeDamage', []))
         }
+        if (!isEmpty(get(data, 'data.result.healthDamage', []))) {
+            setHealthDamage(get(data, 'data.result.healthDamage', []))
+        }
     }, [data])
 
     if (isLoading || isLoadingCountry || isLoadingResident || isLoadingRegion || isLoadingOwnershipForms) {
         return <Spin spinning fullscreen/>
     }
-    console.log('lifeDamage', lifeDamage)
+
     return (
         <>
             <PageHeader
@@ -667,15 +674,58 @@ const AgreementEditPage = () => {
                                         title: t('Действия'),
                                         dataIndex: '_id',
                                         render: (text, record, index) => <Space>
-                                            {/*<Button*/}
-                                            {/*    onClick={() => {*/}
-                                            {/*        setOpenLifeDamage(true);*/}
-                                            {/*        formLifeDamage.setFieldsValue(record);*/}
-                                            {/*        formLifeDamage.setFieldValue(['person','birthDate'],dayjs(get(record,'person.birthDate')));*/}
-                                            {/*    }}*/}
-                                            {/*    shape="circle" icon={<EditOutlined/>}/>*/}
                                             <Button
                                                 onClick={() => setLifeDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
+                                                danger
+                                                shape="circle" icon={<DeleteOutlined/>}/>
+                                        </Space>
+                                    }
+                                ]}
+                            />
+                        </Col>
+                    </Row>
+                    <Row gutter={16} align="middle">
+                        <Col span={20}>
+                            <Divider orientation={'left'}>{t('Добавление информации о вреде здоровью:')}</Divider>
+                        </Col>
+                        <Col span={4} className={'text-right'}>
+                            <Form.Item label={' '}
+                            >
+                                <Button icon={<PlusOutlined/>} onClick={() => setOpenHealthDamage(true)}>
+                                    {t('Добавить')}
+                                </Button>
+                            </Form.Item>
+                        </Col>
+                        <Col span={24}>
+                            <Table
+                                dataSource={healthDamage}
+                                columns={[
+                                    {
+                                        title: t('ПИНФЛ'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'passportData.pinfl')
+                                    },
+                                    {
+                                        title: t('Фамилия'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.lastname')
+                                    },
+                                    {
+                                        title: t('Имя'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.firstname')
+                                    },
+                                    {
+                                        title: t('Отчество'),
+                                        dataIndex: 'person',
+                                        render: (text) => get(text, 'fullName.middlename')
+                                    },
+                                    {
+                                        title: t('Действия'),
+                                        dataIndex: '_id',
+                                        render: (text, record, index) => <Space>
+                                            <Button
+                                                onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
                                                 danger
                                                 shape="circle" icon={<DeleteOutlined/>}/>
                                         </Space>
@@ -882,6 +932,178 @@ const AgreementEditPage = () => {
                                 {t('Добавить')}
                             </Button>
                             <Button danger type={'primary'} onClick={() => setOpenLifeDamage(false)}>
+                                {t('Отмена')}
+                            </Button>
+                        </Flex>
+                    </Form>
+                </Spin>
+            </Drawer>
+
+
+            <Drawer width={1200} title={t('Добавление информации о вреде здоровью')} open={openHealthDamage}
+                    onClose={() => setOpenHealthDamage(false)}>
+                <Spin spinning={isPending}>
+                    <Form
+                        name="health-damage"
+                        layout="vertical"
+                        onFinish={(_attrs) => {
+                            setHealthDamage(prev => [...prev, _attrs]);
+                            setOpenHealthDamage(false)
+                        }}
+                        form={formHealthDamage}
+                    >
+                        <Row gutter={16}>
+                            <Col xs={4}>
+                                <Form.Item
+                                    label={t("Серия паспорта")}
+                                    name={['person', 'passportData', 'seria']}
+                                    rules={[{required: true, message: t('Обязательное поле')}]}
+                                >
+                                    <MaskedInput mask={'aa'} className={'uppercase'} placeholder={'__'}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item
+                                    label={t("Номер паспорта")}
+                                    name={['person', 'passportData', 'number']}
+                                    rules={[{required: true, message: t('Обязательное поле')}]}
+                                >
+                                    <MaskedInput mask={'9999999'} placeholder={'_______'}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={8}>
+                                <Form.Item
+                                    label={t("ПИНФЛ")}
+                                    name={['person', 'passportData', 'pinfl']}
+                                    rules={[{required: true, message: t('Обязательное поле')}]}
+                                >
+                                    <MaskedInput mask={'99999999999999'} placeholder={'______________'}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item label={' '}>
+                                    <Button loading={isPending} icon={<ReloadOutlined/>}
+                                            onClick={() => getPersonInfo(formHealthDamage, ['person'])}
+                                            type="primary">
+                                        {t('Найти')}
+                                    </Button>
+                                </Form.Item>
+                            </Col>
+                            <Col>
+                                <Form.Item name={['person', 'birthDate']} label={t('Дата рождения')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <DatePicker/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'fullName', 'lastname']} label={t('Фамилия')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'fullName', 'firstname']} label={t('Имя')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'fullName', 'middlename']} label={t('Отчество')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'residentType']} label={t('Резидент')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Select options={residentTypes}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item initialValue={210} name={['person', 'countryId']}
+                                           label={t('Страна')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Select options={countryList}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'gender']} label={t('Пол')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Select options={[
+                                        {
+                                            value: 'm',
+                                            label: t('мужчина')
+                                        },
+                                        {
+                                            value: 'f',
+                                            label: t('женщина')
+                                        }
+                                    ]}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'regionId']} label={t('Область')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}>
+                                    <Select options={regions}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'districtId']} label={t('Район')}
+                                >
+                                    <Select options={districts}/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={12}>
+                                <Form.Item name={['person', 'address']} label={t('Адрес')}
+                                           rules={[{required: true, message: t('Обязательное поле')}]}
+                                >
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'driverLicenseSeria']}
+                                           label={t(' Серия вод. удостоверения')}
+                                >
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col xs={6}>
+                                <Form.Item name={['person', 'driverLicenseNumber']}
+                                           label={t('Номер вод. удостоверения')}
+                                >
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    label={t("Телефон")}
+                                    name={['person', 'phone']}
+                                    getValueFromEvent={(e) => stripNonDigits(e.target.value)}
+                                    rules={[{required: true, message: t('Обязательное поле')}]}
+                                >
+                                    <MaskedInput mask={"+\\9\\98 (99) 999-99-99"}/>
+                                </Form.Item>
+                            </Col>
+                            <Col span={6}>
+                                <Form.Item
+                                    label={t("Электронная почта")}
+                                    name={['person', 'email']}
+                                    rules={[
+                                        {
+                                            type: 'email',
+                                            message: t('Введите действительный адрес электронной почты'),
+                                        },
+                                    ]}
+                                >
+                                    <Input/>
+                                </Form.Item>
+                            </Col>
+                        </Row>
+                        <Flex className={'mt-6'}>
+                            <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
+                                {t('Добавить')}
+                            </Button>
+                            <Button danger type={'primary'} onClick={() => setOpenHealthDamage(false)}>
                                 {t('Отмена')}
                             </Button>
                         </Flex>

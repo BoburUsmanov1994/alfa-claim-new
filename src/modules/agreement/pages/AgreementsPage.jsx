@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import {PageHeader} from "@ant-design/pro-components";
 import {useTranslation} from "react-i18next";
-import {Button, Tag} from "antd";
-import {PlusOutlined} from "@ant-design/icons"
+import {Button, Space, Tag} from "antd";
+import {PlusOutlined, EyeOutlined, EditOutlined, FileOutlined} from "@ant-design/icons"
 import Datagrid from "../../../containers/datagrid";
 import {URLS} from "../../../constants/url";
 import {useStore} from "../../../store";
@@ -70,7 +70,16 @@ const AgreementsPage = () => {
                             render: (text) => <Tag color={colors[text] || 'default'}>{text}</Tag>,
                             align: 'center',
                         },
-
+                        {
+                            title: t('Действия'),
+                            dataIndex: '_id',
+                            render: (_id) => <Space>
+                                <Button className={'cursor-pointer'} icon={<EyeOutlined/>}>{t('Детали')}</Button>
+                                <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
+                                        icon={<EditOutlined/>}>{t('Редактировать')}</Button>
+                                <Button className={'cursor-pointer'} icon={<FileOutlined/>}>{t('Документы')}</Button>
+                            </Space>
+                        },
                     ]}
                     url={URLS.claimList}/>
             </PageHeader>

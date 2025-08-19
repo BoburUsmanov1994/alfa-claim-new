@@ -227,5 +227,7 @@ export const URLS = {
     eimzoLogin: 'api/eimzo/login',
     claimList: 'api/claim/list',
     claimCreate: 'api/claim/create',
+    claimEdit: 'api/claim/edit',
     claimDraft: 'api/claim/create/draft',
+    claimShow: 'api/claim/show',
 }

@@ -7,6 +7,7 @@ import LoginPage from "../modules/auth/pages/LoginPage";
 import PrivateRoute from "../services/auth/PrivateRoute";
 import AgreementsPage from "../modules/agreement/pages/AgreementsPage";
 import AgreementCreatePage from "../modules/agreement/pages/AgreementCreatePage";
+import AgreementEditPage from "../modules/agreement/pages/AgreementEditPage";
 
 const Index = () => {
     return (
@@ -33,6 +34,16 @@ const Index = () => {
                             <PrivateRoute>
                                 <MainLayout>
                                     <AgreementCreatePage/>
+                                </MainLayout>
+                            </PrivateRoute>
+                        }
+                    />
+                    <Route
+                        path="/claims/edit/:id"
+                        element={
+                            <PrivateRoute>
+                                <MainLayout>
+                                    <AgreementEditPage/>
                                 </MainLayout>
                             </PrivateRoute>
                         }

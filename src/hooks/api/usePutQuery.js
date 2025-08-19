@@ -7,7 +7,6 @@ const putRequest = (url, attributes) => request.patch(url, attributes);
 
 const usePutQuery = ({hideSuccessToast = false, listKeyId = null}) => {
 
-
         const queryClient = useQueryClient();
 
         const {mutate, isLoading, isError, error, isFetching, isPending} = useMutation({

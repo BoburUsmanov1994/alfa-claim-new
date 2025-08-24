@@ -16,63 +16,37 @@ import {
     Table
 } from "antd";
 import {DeleteOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
-import {get, isEqual, toUpper} from "lodash";
+import {get, isEqual} from "lodash";
 import {filter} from "lodash/collection";
 import MaskedInput from "../../../../components/masked-input";
 import {useTranslation} from "react-i18next";
-import {useGetAllQuery, usePostQuery} from "../../../../hooks/api";
+import {useGetAllQuery} from "../../../../hooks/api";
 import {KEYS} from "../../../../constants/key";
 import {URLS} from "../../../../constants/url";
 import {getSelectOptionsListFromData, stripNonDigits} from "../../../../utils";
-import dayjs from "dayjs";
 
 const Index = ({
+                   countryList = [],
+                   getPersonInfo = () => {
+                   },
                    vehicleDamage = [],
+                   getVehicleInfo = () => {
+                   },
+                   regions = [],
+                   vehicleTypes = [],
                    setVehicleDamage,
+                   isPending = false,
+                   getOrgInfo = () => {
+                   },
+                   residentTypes = [],
+                   ownershipForms = [],
                    title = 'Добавление информации о вреде автомобилю:'
                }) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
-    const {mutate, isPending} = usePostQuery({})
     const {vehicle, owner} = Form.useWatch([], form) || {}
-    const getVehicleInfo = (_form = form, type = ['vehicle', 'person']) => {
-        mutate({
-            url: URLS.vehicleInfoProvider,
-            attributes: {
-                techPassportSeria: toUpper(_form.getFieldValue([...type, 'techPassport', 'seria'])),
-                techPassportNumber: _form.getFieldValue([...type, 'techPassport', 'number']),
-                govNumber: _form.getFieldValue([...type, 'govNumber']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                _form.setFieldValue([...type, 'vehicleTypeId'], get(result, 'vehicleTypeId'))
-                _form.setFieldValue([...type, 'modelCustomName'], get(result, 'modelName'))
-                _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
-                _form.setFieldValue([...type, 'bodyNumber'], get(result, 'bodyNumber'))
-                _form.setFieldValue([...type, 'engineNumber'], get(result, 'engineNumber'))
-                _form.setFieldValue([...type, 'liftingCapacity'], parseInt(get(result, 'stands')))
-                _form.setFieldValue([...type, 'numberOfSeats'], parseInt(get(result, 'seats')))
-                _form.setFieldValue([...type, 'issueYear'], get(result, 'issueYear'))
-            }
-        })
-    }
-    let {data: vehicleTypes} = useGetAllQuery({
-        key: KEYS.vehicleType,
-        url: URLS.vehicleType,
-    });
-    vehicleTypes = getSelectOptionsListFromData(get(vehicleTypes, `data.result`, []), 'id', 'name')
-    const {data: country} = useGetAllQuery({
-        key: KEYS.countries, url: `${URLS.countries}`
-    })
 
-    const countryList = getSelectOptionsListFromData(get(country, `data.result`, []), 'id', 'name')
-
-    let {data: regions} = useGetAllQuery({
-        key: KEYS.regions,
-        url: URLS.regions,
-    });
-    regions = getSelectOptionsListFromData(get(regions, `data.result`, []), 'id', 'name')
     let {data: districts} = useGetAllQuery({
         key: [KEYS.districts, get(vehicle, 'regionId'), get(vehicle, 'ownerPerson.regionId'), get(vehicle, 'ownerOrganization.regionId')],
         url: URLS.districts,
@@ -84,59 +58,6 @@ const Index = ({
         enabled: !!(get(vehicle, 'regionId') || get(vehicle, 'ownerPerson.regionId') || get(vehicle, 'ownerOrganization.regionId')),
     })
     districts = getSelectOptionsListFromData(get(districts, `data.result`, []), 'id', 'name')
-
-    const getPersonInfo = (_form = form, type = ['vehicle', 'ownerPerson']) => {
-        mutate({
-            url: URLS.personalInfo,
-            attributes: {
-                passportSeries: toUpper(_form.getFieldValue([...type, 'passportData', 'seria'])),
-                passportNumber: _form.getFieldValue([...type, 'passportData', 'number']),
-                pinfl: _form.getFieldValue([...type, 'passportData', 'pinfl']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                _form.setFieldValue([...type, 'birthDate'], dayjs(get(result, 'birthDate')))
-                _form.setFieldValue([...type, 'fullName', 'firstname'], get(result, 'firstNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'lastname'], get(result, 'lastNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'middlename'], get(result, 'middleNameLatin'))
-                _form.setFieldValue([...type, 'gender'], get(result, 'gender'))
-                _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
-                _form.setFieldValue([...type, 'address'], get(result, 'address'))
-            }
-        })
-    }
-
-
-    const getOrgInfo = () => {
-        mutate({
-            url: URLS.orgInfo,
-            attributes: {
-                inn: form.getFieldValue(['vehicle', 'ownerOrganization', 'inn']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'name'], get(result, 'name'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'oked'], get(result, 'oked'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'address'], get(result, 'address'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'checkingAccount'], get(result, 'account'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'representativeName'], get(result, 'gdFullName'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'phone'], get(result, 'phone'))
-                form.setFieldValue(['vehicle', 'ownerOrganization', 'email'], get(result, 'email'))
-            }
-        })
-    }
-
-    let {data: residentTypes} = useGetAllQuery({
-        key: KEYS.residentType,
-        url: URLS.residentType,
-    });
-    residentTypes = getSelectOptionsListFromData(get(residentTypes, `data.result`, []), 'id', 'name')
-
-    let {data: ownershipForms} = useGetAllQuery({
-        key: KEYS.ownershipForms,
-        url: URLS.ownershipForms,
-    });
-    ownershipForms = getSelectOptionsListFromData(get(ownershipForms, `data.result`, []), 'id', 'name')
 
 
     return (
@@ -166,21 +87,25 @@ const Index = ({
                             {
                                 title: t('Модель'),
                                 dataIndex: 'vehicle',
+                                align: 'center',
                                 render: (text) => get(text, 'modelCustomName')
                             },
                             {
                                 title: t('Серия тех.паспорта'),
                                 dataIndex: 'vehicle',
+                                align: 'center',
                                 render: (text) => get(text, 'techPassport.seria')
                             },
                             {
                                 title: t('Номер тех.паспорта'),
                                 dataIndex: 'vehicle',
+                                align: 'center',
                                 render: (text) => get(text, 'techPassport.number')
                             },
                             {
                                 title: t('Действия'),
                                 dataIndex: '_id',
+                                align: 'center',
                                 render: (text, record, index) => <Space>
                                     <Button
                                         onClick={() => setVehicleDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
@@ -201,6 +126,7 @@ const Index = ({
                         onFinish={(_attrs) => {
                             setVehicleDamage(prev => [...prev, _attrs]);
                             setOpen(false)
+                            form.resetFields();
                         }}
                         initialValues={{
                             owner: 'person'
@@ -238,7 +164,7 @@ const Index = ({
                             <Col xs={6}>
                                 <Form.Item label={' '}>
                                     <Button loading={isPending} icon={<ReloadOutlined/>}
-                                            onClick={() => getVehicleInfo(form, ['vehicle'])}
+                                            onClick={() => getVehicleInfo(['vehicle'], form)}
                                             type="primary">
                                         {t('Найти')}
                                     </Button>
@@ -369,7 +295,7 @@ const Index = ({
                                     <Col xs={4}>
                                         <Form.Item label={' '}>
                                             <Button loading={isPending} icon={<ReloadOutlined/>}
-                                                    onClick={() => getPersonInfo()}
+                                                    onClick={() => getPersonInfo(['vehicle', 'ownerPerson'], form)}
                                                     type="primary">
                                                 {t('Найти')}
                                             </Button>
@@ -389,7 +315,8 @@ const Index = ({
 
                                     <Col xs={6}>
                                         <Form.Item label={' '}>
-                                            <Button loading={isPending} icon={<ReloadOutlined/>} onClick={getOrgInfo}
+                                            <Button loading={isPending} icon={<ReloadOutlined/>}
+                                                    onClick={() => getOrgInfo(['vehicle', 'ownerOrganization'], form)}
                                                     type="primary">
                                                 {t('Найти')}
                                             </Button>
@@ -399,10 +326,10 @@ const Index = ({
                             </Col>
                         </Row>
                         {isEqual(owner, 'person') ? <Row gutter={16}>
-                            <Col>
+                            <Col span={6}>
                                 <Form.Item name={['vehicle', 'ownerPerson', 'birthDate']} label={t('Дата рождения')}
                                            rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker/>
+                                    <DatePicker className={'w-full'}/>
                                 </Form.Item>
                             </Col>
                             <Col xs={6}>

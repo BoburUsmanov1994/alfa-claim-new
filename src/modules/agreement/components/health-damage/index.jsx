@@ -1,73 +1,44 @@
 import React, {useState} from 'react';
 import {Button, Col, DatePicker, Divider, Drawer, Flex, Form, Input, Row, Select, Space, Spin, Table} from "antd";
 import {DeleteOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
-import {get, isEqual, toUpper} from "lodash";
+import {get, isEqual} from "lodash";
 import {filter} from "lodash/collection";
 import {useTranslation} from "react-i18next";
 import MaskedInput from "../../../../components/masked-input";
 import {getSelectOptionsListFromData, stripNonDigits} from "../../../../utils";
 import {useGetAllQuery, usePostQuery} from "../../../../hooks/api";
 import {URLS} from "../../../../constants/url";
-import dayjs from "dayjs";
 import {KEYS} from "../../../../constants/key";
 
-const Index = ({healthDamage=[],setHealthDamage,title='Добавление информации о вреде здоровью:'}) => {
+const Index = ({
+                   residentTypes = [],
+                   countryList = [],
+                   regions = [],
+                   healthDamage = [],
+                   setHealthDamage,
+                   title = 'Добавление информации о вреде здоровью:',
+                   getPersonInfo = () => {
+                   },
+                   isPending = false
+               }) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
     const {person} = Form.useWatch([], form) || {}
-    const {mutate, isPending} = usePostQuery({})
-
-    let {data: residentTypes, isLoading: isLoadingResident} = useGetAllQuery({
-        key: KEYS.residentType,
-        url: URLS.residentType,
-    });
-    residentTypes = getSelectOptionsListFromData(get(residentTypes, `data.result`, []), 'id', 'name')
 
 
-    const {data: country, isLoading: isLoadingCountry} = useGetAllQuery({
-        key: KEYS.countries, url: `${URLS.countries}`
-    })
-    const countryList = getSelectOptionsListFromData(get(country, `data.result`, []), 'id', 'name')
-
-    let {data: regions, isLoading: isLoadingRegion} = useGetAllQuery({
-        key: KEYS.regions,
-        url: URLS.regions,
-    });
-    regions = getSelectOptionsListFromData(get(regions, `data.result`, []), 'id', 'name')
     let {data: districts} = useGetAllQuery({
         key: [KEYS.districts, get(person, 'regionId')],
         url: URLS.districts,
         params: {
             params: {
-                region:  get(person, 'regionId')
+                region: get(person, 'regionId')
             }
         },
         enabled: !!(get(person, 'regionId'))
     })
     districts = getSelectOptionsListFromData(get(districts, `data.result`, []), 'id', 'name')
 
-    const getPersonInfo = (_form = form, type = ['applicant', 'person']) => {
-        mutate({
-            url: URLS.personalInfo,
-            attributes: {
-                passportSeries: toUpper(_form.getFieldValue([...type, 'passportData', 'seria'])),
-                passportNumber: _form.getFieldValue([...type, 'passportData', 'number']),
-                pinfl: _form.getFieldValue([...type, 'passportData', 'pinfl']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                _form.setFieldValue([...type, 'birthDate'], dayjs(get(result, 'birthDate')))
-                _form.setFieldValue([...type, 'fullName', 'firstname'], get(result, 'firstNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'lastname'], get(result, 'lastNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'middlename'], get(result, 'middleNameLatin'))
-                _form.setFieldValue([...type, 'gender'], get(result, 'gender'))
-                _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
-                _form.setFieldValue([...type, 'districtId'], get(result, 'districtId'))
-                _form.setFieldValue([...type, 'address'], get(result, 'address'))
-            }
-        })
-    }
     return (
         <>
             <Row gutter={16} align="middle">
@@ -95,21 +66,25 @@ const Index = ({healthDamage=[],setHealthDamage,title='Добавление ин
                             {
                                 title: t('Фамилия'),
                                 dataIndex: 'person',
-                                render: (text) => get(text, 'fullName.lastname')
+                                render: (text) => get(text, 'fullName.lastname'),
+                                align: 'center',
                             },
                             {
                                 title: t('Имя'),
                                 dataIndex: 'person',
-                                render: (text) => get(text, 'fullName.firstname')
+                                render: (text) => get(text, 'fullName.firstname'),
+                                align: 'center',
                             },
                             {
                                 title: t('Отчество'),
                                 dataIndex: 'person',
-                                render: (text) => get(text, 'fullName.middlename')
+                                render: (text) => get(text, 'fullName.middlename'),
+                                align: 'center',
                             },
                             {
                                 title: t('Действия'),
                                 dataIndex: '_id',
+                                align: 'center',
                                 render: (text, record, index) => <Space>
                                     <Button
                                         onClick={() => setHealthDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
@@ -130,6 +105,7 @@ const Index = ({healthDamage=[],setHealthDamage,title='Добавление ин
                         onFinish={(_attrs) => {
                             setHealthDamage(prev => [...prev, _attrs]);
                             setOpen(false)
+                            form.resetFields();
                         }}
                         form={form}
                     >
@@ -164,16 +140,16 @@ const Index = ({healthDamage=[],setHealthDamage,title='Добавление ин
                             <Col xs={6}>
                                 <Form.Item label={' '}>
                                     <Button loading={isPending} icon={<ReloadOutlined/>}
-                                            onClick={() => getPersonInfo(form, ['person'])}
+                                            onClick={() => getPersonInfo(['person'], form)}
                                             type="primary">
                                         {t('Найти')}
                                     </Button>
                                 </Form.Item>
                             </Col>
-                            <Col>
+                            <Col span={6}>
                                 <Form.Item name={['person', 'birthDate']} label={t('Дата рождения')}
                                            rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker/>
+                                    <DatePicker className={'w-full'}/>
                                 </Form.Item>
                             </Col>
                             <Col xs={6}>

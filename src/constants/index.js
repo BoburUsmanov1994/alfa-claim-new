@@ -44,3 +44,11 @@ export const STATUS_LIST = [
         label:'sent'
     },
 ]
+export const CLAIM_STATUS_LIST = {
+    submitted: 'blue',
+    draft: 'default',
+    reviewing: 'warning',
+    accepted: 'green',
+    paid: 'cyan',
+    denied: 'red',
+}

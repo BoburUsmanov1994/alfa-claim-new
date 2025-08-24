@@ -16,96 +16,46 @@ import {
     Table
 } from "antd";
 import {DeleteOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
-import {get, isEqual, toUpper} from "lodash";
+import {get, isEqual} from "lodash";
 import {filter} from "lodash/collection";
 import {useTranslation} from "react-i18next";
 import MaskedInput from "../../../../components/masked-input";
 import {getSelectOptionsListFromData, stripNonDigits} from "../../../../utils";
-import {useGetAllQuery, usePostQuery} from "../../../../hooks/api";
+import {useGetAllQuery} from "../../../../hooks/api";
 import {URLS} from "../../../../constants/url";
-import dayjs from "dayjs";
 import {KEYS} from "../../../../constants/key";
 
-const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добавление информации о вреде имуществу:'}) => {
+const Index = ({
+                   residentTypes = [],
+                   otherPropertyDamage = [],
+                   countryList = [],
+                   regions = [],
+                   getPersonInfo = () => {
+                   },
+                   getOrgInfo = () => {
+                   },
+                   isPending = false,
+                   ownershipForms = [],
+                   setOtherPropertyDamage,
+                   title = 'Добавление информации о вреде имуществу:'
+               }) => {
     const {t} = useTranslation();
     const [open, setOpen] = useState(false);
     const [form] = Form.useForm();
-    const {owner,ownerPerson,ownerOrganization} = Form.useWatch([], form) || {}
-    const {mutate, isPending} = usePostQuery({})
+    const {owner, ownerPerson, ownerOrganization} = Form.useWatch([], form) || {}
 
-    let {data: residentTypes} = useGetAllQuery({
-        key: KEYS.residentType,
-        url: URLS.residentType,
-    });
-    residentTypes = getSelectOptionsListFromData(get(residentTypes, `data.result`, []), 'id', 'name')
-
-
-    const {data: country} = useGetAllQuery({
-        key: KEYS.countries, url: `${URLS.countries}`
-    })
-    const countryList = getSelectOptionsListFromData(get(country, `data.result`, []), 'id', 'name')
-
-    let {data: regions} = useGetAllQuery({
-        key: KEYS.regions,
-        url: URLS.regions,
-    });
-    regions = getSelectOptionsListFromData(get(regions, `data.result`, []), 'id', 'name')
     let {data: districts} = useGetAllQuery({
-        key: [KEYS.districts, get(ownerPerson, 'regionId'),get(ownerOrganization, 'regionId')],
+        key: [KEYS.districts, get(ownerPerson, 'regionId'), get(ownerOrganization, 'regionId')],
         url: URLS.districts,
         params: {
             params: {
-                region:  get(ownerPerson, 'regionId') || get(ownerOrganization, 'regionId')
+                region: get(ownerPerson, 'regionId') || get(ownerOrganization, 'regionId')
             }
         },
         enabled: !!(get(ownerPerson, 'regionId') || get(ownerOrganization, 'regionId'))
     })
     districts = getSelectOptionsListFromData(get(districts, `data.result`, []), 'id', 'name')
 
-    const getPersonInfo = (_form = form, type = ['ownerPerson']) => {
-        mutate({
-            url: URLS.personalInfo,
-            attributes: {
-                passportSeries: toUpper(_form.getFieldValue([...type, 'passportData', 'seria'])),
-                passportNumber: _form.getFieldValue([...type, 'passportData', 'number']),
-                pinfl: _form.getFieldValue([...type, 'passportData', 'pinfl']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                _form.setFieldValue([...type, 'birthDate'], dayjs(get(result, 'birthDate')))
-                _form.setFieldValue([...type, 'fullName', 'firstname'], get(result, 'firstNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'lastname'], get(result, 'lastNameLatin'))
-                _form.setFieldValue([...type, 'fullName', 'middlename'], get(result, 'middleNameLatin'))
-                _form.setFieldValue([...type, 'gender'], get(result, 'gender'))
-                _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
-                _form.setFieldValue([...type, 'districtId'], get(result, 'districtId'))
-                _form.setFieldValue([...type, 'address'], get(result, 'address'))
-            }
-        })
-    }
-    const getOrgInfo = () => {
-        mutate({
-            url: URLS.orgInfo,
-            attributes: {
-                inn: form.getFieldValue(['ownerOrganization', 'inn']),
-            }
-        }, {
-            onSuccess: ({data: {result} = {}}) => {
-                form.setFieldValue(['ownerOrganization', 'name'], get(result, 'name'))
-                form.setFieldValue(['ownerOrganization', 'oked'], get(result, 'oked'))
-                form.setFieldValue(['ownerOrganization', 'address'], get(result, 'address'))
-                form.setFieldValue(['ownerOrganization', 'checkingAccount'], get(result, 'account'))
-                form.setFieldValue(['ownerOrganization', 'representativeName'], get(result, 'gdFullName'))
-                form.setFieldValue(['ownerOrganization', 'phone'], get(result, 'phone'))
-                form.setFieldValue(['ownerOrganization', 'email'], get(result, 'email'))
-            }
-        })
-    }
-    let {data: ownershipForms} = useGetAllQuery({
-        key: KEYS.ownershipForms,
-        url: URLS.ownershipForms,
-    });
-    ownershipForms = getSelectOptionsListFromData(get(ownershipForms, `data.result`, []), 'id', 'name')
     return (
         <>
             <Row gutter={16} align="middle">
@@ -131,6 +81,7 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                             {
                                 title: t('Действия'),
                                 dataIndex: '_id',
+                                align: 'center',
                                 render: (text, record, index) => <Space>
                                     <Button
                                         onClick={() => setOtherPropertyDamage(prev => filter(prev, (_, _index) => !isEqual(_index, index)))}
@@ -151,18 +102,20 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                         onFinish={(_attrs) => {
                             setOtherPropertyDamage(prev => [...prev, _attrs]);
                             setOpen(false)
+                            form.resetFields();
                         }}
                         form={form}
                         initialValues={{
-                            owner:'person'
+                            owner: 'person'
                         }}
                     >
                         <Row gutter={16}>
                             <Col span={24}>
-                                    <Form.Item rules={[{required: true, message: t('Обязательное поле')}]}  name={'property'} label={t("Информация об имуществе")}
-                                    >
-                                        <Input.TextArea/>
-                                    </Form.Item>
+                                <Form.Item rules={[{required: true, message: t('Обязательное поле')}]} name={'property'}
+                                           label={t("Информация об имуществе")}
+                                >
+                                    <Input.TextArea/>
+                                </Form.Item>
                             </Col>
                             <Col xs={6}>
                                 <Form.Item name={'owner'} label={t('Владелец имущества')}
@@ -203,7 +156,7 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                                     <Col xs={8}>
                                         <Form.Item
                                             label={t("ПИНФЛ")}
-                                            name={[ 'ownerPerson', 'passportData', 'pinfl']}
+                                            name={['ownerPerson', 'passportData', 'pinfl']}
                                             rules={[{required: true, message: t('Обязательное поле')}]}
                                         >
                                             <MaskedInput mask={'99999999999999'} placeholder={'______________'}/>
@@ -212,7 +165,7 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                                     <Col xs={4}>
                                         <Form.Item label={' '}>
                                             <Button loading={isPending} icon={<ReloadOutlined/>}
-                                                    onClick={() => getPersonInfo()}
+                                                    onClick={() => getPersonInfo(['ownerPerson'], form)}
                                                     type="primary">
                                                 {t('Найти')}
                                             </Button>
@@ -232,7 +185,8 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
 
                                     <Col xs={6}>
                                         <Form.Item label={' '}>
-                                            <Button loading={isPending} icon={<ReloadOutlined/>} onClick={getOrgInfo}
+                                            <Button loading={isPending} icon={<ReloadOutlined/>}
+                                                    onClick={() => getOrgInfo(['ownerOrganization'], form)}
                                                     type="primary">
                                                 {t('Найти')}
                                             </Button>
@@ -242,10 +196,10 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                             </Col>
                         </Row>
                         {isEqual(owner, 'person') ? <Row gutter={16}>
-                            <Col>
+                            <Col span={6}>
                                 <Form.Item name={['ownerPerson', 'birthDate']} label={t('Дата рождения')}
                                            rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker/>
+                                    <DatePicker className={'w-full'}/>
                                 </Form.Item>
                             </Col>
                             <Col xs={6}>
@@ -398,7 +352,7 @@ const Index = ({otherPropertyDamage=[],setOtherPropertyDamage,title='Добав�
                                 </Form.Item>
                             </Col>
                             <Col xs={12}>
-                                <Form.Item name={[ 'ownerOrganization', 'address']} label={t('Адрес')}
+                                <Form.Item name={['ownerOrganization', 'address']} label={t('Адрес')}
                                            rules={[{required: true, message: t('Обязательное поле')}]}
                                 >
                                     <Input/>

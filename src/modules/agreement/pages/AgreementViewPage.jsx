@@ -4,21 +4,21 @@ import {useTranslation} from "react-i18next";
 import {
     Spin, Tabs,
 } from "antd";
-import {useNavigate, useParams} from "react-router-dom";
+import {useParams, useSearchParams} from "react-router-dom";
 import {useGetAllQuery, usePostQuery} from "../../../hooks/api";
 import {URLS} from "../../../constants/url";
 import {KEYS} from "../../../constants/key";
-import useAuth from "../../../hooks/auth/useAuth";
 import View from "../components/view";
 import {get} from "lodash";
 import Datagrid from "../../../containers/datagrid";
+import Docs from "../components/docs";
+import dayjs from "dayjs";
 
 
 const AgreementViewPage = () => {
     const {id} = useParams();
     const {t} = useTranslation();
-    const navigate = useNavigate();
-    const {user} = useAuth()
+    const [searchParams,setSearchParams] = useSearchParams()
     const {mutate, isPending} = usePostQuery({})
 
     let {data, isLoading} = useGetAllQuery({
@@ -39,6 +39,10 @@ const AgreementViewPage = () => {
             >
 
                 <Tabs
+                    onTabClick={(tab) => {
+                        setSearchParams(`tab=${tab}`);
+                    }}
+                    activeKey={searchParams.get("tab") || 'view'}
                     items={[
                         {
                             key: 'view',
@@ -47,7 +51,8 @@ const AgreementViewPage = () => {
                         },
                         {
                             key: 'docs',
-                            label: t('Документы по заявлению')
+                            label: t('Документы по заявлению'),
+                            children: <Docs id={id} data={get(data, 'data.result')}/>
                         },
                         {
                             key: 'history',
@@ -56,6 +61,7 @@ const AgreementViewPage = () => {
                                 {
                                     title: t('Дата операции'),
                                     dataIndex: 'date',
+                                    render: date => dayjs(date).format('YYYY-MM-DD'),
                                 },
                                 {
                                     title: t('Комментарий'),

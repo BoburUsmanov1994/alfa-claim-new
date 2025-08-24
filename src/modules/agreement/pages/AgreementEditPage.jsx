@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {PageHeader} from "@ant-design/pro-components";
 import {useTranslation} from "react-i18next";
 import {
-    Button,
+    Button, Card,
     Col,
     DatePicker,
     Divider,
@@ -12,7 +12,7 @@ import {
     Input, notification,
     Radio,
     Row,
-    Select, Space,
+    Select,
     Spin, Table,
     Typography,
     Upload
@@ -23,7 +23,7 @@ import {useDeleteQuery, useGetAllQuery, usePostQuery, usePutQuery} from "../../.
 import {URLS} from "../../../constants/url";
 import {get, isEmpty, isEqual, toUpper} from "lodash";
 import dayjs from "dayjs";
-import {PlusOutlined, ReloadOutlined, InboxOutlined, DeleteOutlined, EditOutlined} from "@ant-design/icons";
+import {PlusOutlined, ReloadOutlined, InboxOutlined, DeleteOutlined} from "@ant-design/icons";
 import {KEYS} from "../../../constants/key";
 import {getSelectOptionsListFromData, stripNonDigits} from "../../../utils";
 import useAuth from "../../../hooks/auth/useAuth";
@@ -32,8 +32,10 @@ import VehicleDamage from "../components/vehicle-damage";
 import PropertyDamage from "../components/property-damage";
 import LifeDamage from "../components/life-damage";
 import HealthDamage from "../components/health-damage";
+import FileForm from "../components/file-form";
+import EventForm from "../components/event-form";
+import ApplicantForm from "../components/applicant-form";
 
-const {Dragger} = Upload;
 
 const AgreementEditPage = () => {
     const {id} = useParams();
@@ -76,17 +78,6 @@ const AgreementEditPage = () => {
         url: URLS.regions,
     });
     regions = getSelectOptionsListFromData(get(regions, `data.result`, []), 'id', 'name')
-    let {data: districts} = useGetAllQuery({
-        key: [KEYS.districts, get(applicant, 'person.regionId'), get(applicant, 'organization.regionId'), get(eventCircumstances, 'regionId')],
-        url: URLS.districts,
-        params: {
-            params: {
-                region: get(applicant, 'person.regionId') || get(applicant, 'organization.regionId') || get(eventCircumstances, 'regionId')
-            }
-        },
-        enabled: !!(get(applicant, 'person.regionId') || get(applicant, 'organization.regionId') || get(eventCircumstances, 'regionId'))
-    })
-    districts = getSelectOptionsListFromData(get(districts, `data.result`, []), 'id', 'name')
 
     let {data: ownershipForms, isLoading: isLoadingOwnershipForms} = useGetAllQuery({
         key: KEYS.ownershipForms,
@@ -135,42 +126,7 @@ const AgreementEditPage = () => {
             }
         })
     }
-    const customUpload = async ({file, onSuccess, onError}) => {
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
 
-            const res = await request.post('api/file', formData, {
-                headers: {'Content-Type': 'multipart/form-data'},
-            });
-
-            const _file = res?.data?.result;
-            onSuccess(_file);
-            notification['success']({
-                message: 'Успешно'
-            })
-        } catch (err) {
-            notification['error']({
-                message: err?.response?.data?.message || 'Ошибка'
-            })
-            onError(err);
-        }
-    };
-
-    const handleChange = ({file}) => {
-        if (file.status === 'done') {
-            setFiles(prev => [...prev, file.response]);
-            setOpen(false);
-        }
-    };
-    const removeFile = (_file) => {
-        setFiles(prev => prev.filter(item => item._id !== _file._id));
-        deleteRequest({url: `${URLS.file}/${get(_file, '_id')}`}, {
-            onSuccess: () => {
-
-            }
-        })
-    }
 
     const onFinish = ({client, eventCircumstances, ...rest}) => {
         patchRequest({
@@ -182,7 +138,7 @@ const AgreementEditPage = () => {
                     ...eventCircumstances,
                     countryId: String(get(eventCircumstances, 'countryId'))
                 },
-                photoVideoMaterials: files?.map(({_id, url}) => ({file: _id, url})),
+                photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
                 lifeDamage,
                 healthDamage,
                 vehicleDamage,
@@ -244,415 +200,26 @@ const AgreementEditPage = () => {
                     }}
                     onFinish={onFinish}
                 >
-                    <Row gutter={16}>
-                        <Col span={24} className={'mb-4'}>
-                            <Divider orientation={'left'}>
-                                <Typography.Title level={5}>{t('Данные о Заявителе:')}</Typography.Title>
-                            </Divider>
-                        </Col>
-                        <Col xs={4}>
-                            <Form.Item name={'client'} label={t('Физ / юр. лицо:')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Radio.Group options={[{value: 'person', label: t('физ.лицо')}, {
-                                    value: 'organization',
-                                    label: t('юр.лицо')
-                                }]}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={20}>
-                            {isEqual(client, 'person') && <Row gutter={16}>
-                                <Col xs={4}>
-                                    <Form.Item
-                                        label={t("Серия паспорта")}
-                                        name={['applicant', 'person', 'passportData', 'seria']}
-                                        rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <MaskedInput mask={'aa'} className={'uppercase'} placeholder={'__'}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={4}>
-                                    <Form.Item
-                                        label={t("Номер паспорта")}
-                                        name={['applicant', 'person', 'passportData', 'number']}
-                                        rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <MaskedInput mask={'9999999'} placeholder={'_______'}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item
-                                        initialValue={get(user, 'pin')}
-                                        label={t("ПИНФЛ")}
-                                        name={['applicant', 'person', 'passportData', 'pinfl']}
-                                        rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <MaskedInput mask={'99999999999999'} placeholder={'______________'}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item label={' '}>
-                                        <Button loading={isPending} icon={<ReloadOutlined/>}
-                                                onClick={() => getPersonInfo()}
-                                                type="primary">
-                                            {t('Найти')}
-                                        </Button>
-                                    </Form.Item>
-                                </Col>
-                            </Row>}
-                            {isEqual(client, 'organization') && <Row gutter={16}>
-                                <Col xs={4}>
-                                    <Form.Item
-                                        label={t("ИНН")}
-                                        name={['applicant', 'organization', 'inn']}
-                                        rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <MaskedInput mask={'999999999'} placeholder={'_________'}/>
-                                    </Form.Item>
-                                </Col>
+                    <Card className={'mb-4'} title={t('Данные о Заявителе:')} bordered>
+                        <ApplicantForm
+                            client={client}
+                            applicant={applicant}
+                            isPending={isPending}
+                            countryList={countryList}
+                            regions={regions}
+                            getOrgInfo={getOrgInfo}
+                            getPersonInfo={getPersonInfo}
+                            residentTypes={residentTypes}
+                            ownershipForms={ownershipForms}
+                        />
 
-                                <Col xs={6}>
-                                    <Form.Item label={' '}>
-                                        <Button loading={isPending} icon={<ReloadOutlined/>} onClick={getOrgInfo}
-                                                type="primary">
-                                            {t('Найти')}
-                                        </Button>
-                                    </Form.Item>
-                                </Col>
-                            </Row>}
-                        </Col>
-                    </Row>
-                    {isEqual(client, 'person') ? <Row gutter={16}>
-                        <Col>
-                            <Form.Item name={['applicant', 'person', 'birthDate']} label={t('Дата рождения')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <DatePicker/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'fullName', 'lastname']} label={t('Фамилия')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'fullName', 'firstname']} label={t('Имя')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'fullName', 'middlename']} label={t('Отчество')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'residentType']} label={t('Резидент')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={residentTypes}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item initialValue={210} name={['applicant', 'person', 'countryId']}
-                                       label={t('Страна')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={countryList}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'gender']} label={t('Пол')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={[
-                                    {
-                                        value: 'm',
-                                        label: t('мужчина')
-                                    },
-                                    {
-                                        value: 'f',
-                                        label: t('женщина')
-                                    }
-                                ]}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'regionId']} label={t('Область')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={regions}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'districtId']} label={t('Район')}
-                            >
-                                <Select options={districts}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                            <Form.Item name={['applicant', 'person', 'address']} label={t('Адрес')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'driverLicenseSeria']}
-                                       label={t(' Серия вод. удостоверения')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'person', 'driverLicenseNumber']}
-                                       label={t('Номер вод. удостоверения')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label={t("Телефон")}
-                                name={['applicant', 'person', 'phone']}
-                                getValueFromEvent={(e) => stripNonDigits(e.target.value)}
-                                rules={[{required: true, message: t('Обязательное поле')}]}
-                            >
-                                <MaskedInput mask={"+\\9\\98 (99) 999-99-99"}/>
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label={t("Электронная почта")}
-                                name={['applicant', 'person', 'email']}
-                                rules={[
-                                    {
-                                        type: 'email',
-                                        message: t('Введите действительный адрес электронной почты'),
-                                    },
-                                ]}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
+                    </Card>
+                    <Card className={'mb-4'} title={t('Обстоятельства события:')} bordered>
+                        <EventForm eventCircumstances={eventCircumstances} regions={regions} countryList={countryList}/>
+                    </Card>
+                    <FileForm setFiles={setFiles} files={files}/>
 
-                    </Row> : <Row gutter={16}>
-                        <Col xs={12}>
-                            <Form.Item rules={[{required: true, message: t('Обязательное поле')}]}
-                                       name={['applicant', 'organization', 'name']}
-                                       label={t('Наименование')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'ownershipFormId']}
-                                       label={t('Форма собственности')}
-                            >
-                                <Select options={ownershipForms}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item rules={[{required: true, message: t('Обязательное поле')}]}
-                                       name={['applicant', 'organization', 'oked']}
-                                       label={t('ОКЭД')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item initialValue={210} name={['applicant', 'organization', 'countryId']}
-                                       label={t('Страна')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={countryList}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'regionId']} label={t('Область')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <Select options={regions}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'districtId']} label={t('Район')}
-                            >
-                                <Select options={districts}/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={12}>
-                            <Form.Item name={['applicant', 'organization', 'address']} label={t('Адрес')}
-                                       rules={[{required: true, message: t('Обязательное поле')}]}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'checkingAccount']}
-                                       label={t('Расчетный счет')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'representativeName']}
-                                       label={t('Фамилия представителя')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col xs={6}>
-                            <Form.Item name={['applicant', 'organization', 'position']}
-                                       label={t('Должность представителя')}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label={t("Контактный номер")}
-                                name={['applicant', 'organization', 'phone']}
-                                getValueFromEvent={(e) => stripNonDigits(e.target.value)}
-                                rules={[{required: true, message: t('Обязательное поле')}]}
-                            >
-                                <MaskedInput mask={"+\\9\\98 (99) 999-99-99"}/>
-                            </Form.Item>
-                        </Col>
-                        <Col span={6}>
-                            <Form.Item
-                                label={t("Электронная почта")}
-                                name={['applicant', 'organization', 'email']}
-                                rules={[
-                                    {
-                                        type: 'email',
-                                        message: t('Введите действительный адрес электронной почты'),
-                                    },
-                                ]}
-                            >
-                                <Input/>
-                            </Form.Item>
-                        </Col>
-                    </Row>}
-                    <Row gutter={16}>
-                        <Col span={24} className={'mb-4'}>
-                            <Divider orientation={'left'}>
-                                <Typography.Title level={5}>{t('Обстоятельства события:')}</Typography.Title>
-                            </Divider>
-                            <Row gutter={16}>
-                                <Col xs={6}>
-                                    <Form.Item name={'polisSeria'} label={t('Серия полиса')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
-                                        <Input/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={'polisNumber'} label={t('Номер полиса')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
-                                        <Input/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={['eventCircumstances', 'applicantStatus']} label={t('Ваш статус')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
-                                        <Radio.Group options={[{
-                                            value: 'страхователь',
-                                            label: 'страхователь'
-                                        },
-                                            {
-                                                value: 'пострадавший',
-                                                label: 'пострадавший'
-                                            }
-                                        ]}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={['eventCircumstances', 'eventDateTime']}
-                                               label={t('Дата и время события')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
-                                        <DatePicker showTime format="YYYY-MM-DD HH:mm:ss"/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={['eventCircumstances', 'place']} label={t('Место события')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
 
-                                        <Input/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item initialValue={210} name={['eventCircumstances', 'countryId']}
-                                               label={t('Страна')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <Select options={countryList}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={['eventCircumstances', 'regionId']} label={t('Область')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}>
-                                        <Select options={regions}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={6}>
-                                    <Form.Item name={['eventCircumstances', 'districtId']} label={t('Район')}
-                                               rules={[{required: true, message: t('Обязательное поле')}]}
-                                    >
-                                        <Select options={districts}/>
-                                    </Form.Item>
-                                </Col>
-                                <Col xs={24}>
-                                    <Form.Item name={['eventCircumstances', 'eventInfo']}
-                                               label={t('Сведения о событии')}
-
-                                    >
-                                        <Input.TextArea/>
-                                    </Form.Item>
-                                </Col>
-
-                            </Row>
-                        </Col>
-                    </Row>
-                    <Row gutter={16} align="middle">
-                        <Col span={20}>
-                            <Divider orientation={'left'}>{t('Подтверждающие фото- и видео-материалы:')}</Divider>
-                        </Col>
-
-                        <Col span={4} className={'text-right'}>
-                            <Form.Item label={' '}
-                            >
-                                <Button icon={<PlusOutlined/>} onClick={() => setOpen(true)}>
-                                    {t('Добавить')}
-                                </Button>
-                            </Form.Item>
-                        </Col>
-                        <Col span={24}>
-                            <Table
-                                loading={isPendingDelete}
-                                dataSource={files}
-                                columns={[
-                                    {
-                                        title: t('Имя файла'),
-                                        dataIndex: 'filename',
-                                    },
-                                    {
-                                        title: t('Тип файла'),
-                                        dataIndex: 'mimetype',
-                                    },
-                                    {
-                                        title: t('URL-адрес файла'),
-                                        dataIndex: 'url',
-                                    },
-                                    {
-                                        title: t('Действия'),
-                                        dataIndex: '_id',
-                                        render: (text, record) => <Button onClick={() => removeFile(record)} danger
-                                                                          shape="circle" icon={<DeleteOutlined/>}/>
-                                    }
-                                ]}
-                            />
-                        </Col>
-                    </Row>
-
-                    <LifeDamage setLifeDamage={setLifeDamage} lifeDamage={lifeDamage}/>
-                    <HealthDamage healthDamage={healthDamage} setHealthDamage={setHealthDamage}/>
-                    <VehicleDamage setVehicleDamage={setVehicleDamage} vehicleDamage={vehicleDamage}/>
-                    <PropertyDamage otherPropertyDamage={otherPropertyDamage}
-                                    setOtherPropertyDamage={setOtherPropertyDamage}/>
                     <Flex className={'mt-6'}>
                         <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
                             {t('Сохранять')}
@@ -663,23 +230,6 @@ const AgreementEditPage = () => {
                     </Flex>
                 </Form>
             </Spin>
-            <Drawer title={t('Добавить')} open={open} onClose={() => setOpen(false)}>
-
-                <div className={'h-60'}>
-                    <Dragger
-                        name={'file'}
-                        multiple={false}
-                        onChange={handleChange}
-                        customRequest={customUpload}
-                    >
-                        <p className="ant-upload-drag-icon">
-                            <InboxOutlined/>
-                        </p>
-                        <p className="ant-upload-text">{t('Щелкните или перетащите файл в эту область для загрузки.')}</p>
-
-                    </Dragger>
-                </div>
-            </Drawer>
 
 
         </>

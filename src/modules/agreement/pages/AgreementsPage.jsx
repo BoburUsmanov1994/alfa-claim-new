@@ -1,24 +1,22 @@
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {PageHeader} from "@ant-design/pro-components";
 import {useTranslation} from "react-i18next";
-import {Button, Space, Tag} from "antd";
+import {Button, Drawer, Space, Table, Tag} from "antd";
 import {PlusOutlined, EyeOutlined, EditOutlined, FileOutlined} from "@ant-design/icons"
 import Datagrid from "../../../containers/datagrid";
 import {URLS} from "../../../constants/url";
 import {useStore} from "../../../store";
 import {useNavigate} from "react-router-dom";
 import {get} from "lodash"
+import {isNil} from "lodash/lang";
+import {CLAIM_STATUS_LIST} from "../../../constants";
 
-const colors = {
-    draft: 'default',
-    submitted: 'blue',
-}
 
 const AgreementsPage = () => {
     const {t} = useTranslation()
     const navigate = useNavigate();
     const formRef = useRef(null);
-    const {user} = useStore()
+    const [record, setRecord] = useState(null)
 
     return (
         <>
@@ -63,21 +61,26 @@ const AgreementsPage = () => {
                         {
                             title: t('Сумма заявленного ущерба'),
                             dataIndex: 'agreementNumber',
+                            align: 'center',
                         },
                         {
                             title: t('Статус'),
                             dataIndex: 'status',
-                            render: (text) => <Tag color={colors[text] || 'default'}>{text}</Tag>,
+                            render: (text) => <Tag color={CLAIM_STATUS_LIST[text] || 'default'}>{text}</Tag>,
                             align: 'center',
                         },
                         {
                             title: t('Действия'),
                             dataIndex: '_id',
-                            render: (_id) => <Space>
-                                <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'} icon={<EyeOutlined/>}>{t('Детали')}</Button>
+                            fixed: 'right',
+                            width: 125,
+                            render: (_id, _record) => <Space>
+                                <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
+                                        icon={<EyeOutlined/>}/>
                                 <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
-                                        icon={<EditOutlined/>}>{t('Редактировать')}</Button>
-                                <Button className={'cursor-pointer'} icon={<FileOutlined/>}>{t('Документы')}</Button>
+                                        icon={<EditOutlined/>}/>
+                                <Button onClick={() => setRecord(_record)} className={'cursor-pointer'}
+                                        icon={<FileOutlined/>}/>
                             </Space>
                         },
                     ]}
@@ -115,14 +118,41 @@ const AgreementsPage = () => {
                         {
                             title: t('Сумма заявленного ущерба'),
                             dataIndex: 'agreementNumber',
+                            align: 'center',
                         },
                         {
                             title: t('Статус'),
                             dataIndex: 'agreementNumber',
                         },
+                        {
+                            title: t('Действия'),
+                            dataIndex: '_id',
+                            fixed: 'right',
+                            width: 100,
+                            render: (_id, _record) => <Space>
+                                <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
+                                        icon={<EyeOutlined/>}/>
+                            </Space>
+                        }
                     ]}
                     url={URLS.claimExternalList}/>
             </PageHeader>
+            <Drawer width={800} title={t('Документы')} open={!isNil(record)} onClose={() => setRecord(null)}>
+                <Table
+
+                    dataSource={get(record, 'photoVideoMaterials', [])}
+                    columns={[
+                        {
+                            title: t('ID'),
+                            dataIndex: 'file',
+                        },
+                        {
+                            title: t('URL-адрес файла'),
+                            dataIndex: 'url',
+                            align: 'center',
+                            render: (text) => <Button href={text} type={'link'}>{text}</Button>
+                        }]}/>
+            </Drawer>
         </>
     );
 };

@@ -1,9 +1,7 @@
 import {ReactEIMZO} from "../../services/e-imzo";
 import {useEffect, useState} from "react";
 import {useTranslation} from "react-i18next";
-import {get} from "lodash";
 import {notification} from "antd";
-import {request} from "../../services/api";
 
 const useEimzo = (enabled = true) => {
     const {t} = useTranslation();

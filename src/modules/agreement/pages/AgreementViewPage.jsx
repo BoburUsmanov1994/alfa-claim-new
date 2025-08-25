@@ -18,10 +18,10 @@ import dayjs from "dayjs";
 const AgreementViewPage = () => {
     const {id} = useParams();
     const {t} = useTranslation();
-    const [searchParams,setSearchParams] = useSearchParams()
+    const [searchParams, setSearchParams] = useSearchParams()
     const {mutate, isPending} = usePostQuery({})
 
-    let {data, isLoading} = useGetAllQuery({
+    let {data, isLoading, refetch} = useGetAllQuery({
         key: [KEYS.claimShow, id],
         url: `${URLS.claimShow}?id=${id}`,
         enabled: !!(id)
@@ -47,12 +47,12 @@ const AgreementViewPage = () => {
                         {
                             key: 'view',
                             label: t('Мои заявления'),
-                            children: <View id={id} data={get(data, 'data.result')}/>
+                            children: <View refresh={refetch} id={id} data={get(data, 'data.result')}/>
                         },
                         {
                             key: 'docs',
                             label: t('Документы по заявлению'),
-                            children: <Docs id={id} data={get(data, 'data.result')}/>
+                            children: <Docs refresh={refetch} id={id} data={get(data, 'data.result')}/>
                         },
                         {
                             key: 'history',

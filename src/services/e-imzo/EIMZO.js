@@ -1,7 +1,7 @@
 import axios from "axios";
-import { EIMZOClient as client } from "./e-imzo-client";
-import { get } from "lodash";
-import { request } from "../api";
+import {EIMZOClient as client} from "./e-imzo-client";
+import {get} from "lodash";
+import {request} from "../api";
 
 
 const CAPIWS = window.CAPIWS;
@@ -11,17 +11,20 @@ export default class EIMZO {
     get loadedKey() {
         return this._loadedKey;
     }
+
     set loadedKey(value) {
         this._loadedKey = value;
     }
+
     apiKeys = [
-        'pr1.alfainvest.uz', '18CC7A97C675E14D9817CD4BDC9AA8A02DD53C241C49B8BEC53A705A8FED99FE826E7ED41D087D21B9B62E781CA46F4E30D85F71DEF3EDCBD48D1B430EC0AA8E',
+        '1id.alfainvest.uz', 'CEC872A78BCADA15781AF3BF30AC7B1060BA81C3B3BC2603820BC38F5AF43D65E78ECF13F8153F59E6E3C5262CEB8A6628CB7758421B1E1FAD8C0D04D76D2CB6',
     ];
+
     async checkVersion() {
         return new Promise((resolve, reject) => {
             client.checkVersion(
                 function (major, minor) {
-                    resolve({ major, minor });
+                    resolve({major, minor});
                 },
                 function (error, message) {
                     reject(error, message);
@@ -61,7 +64,7 @@ export default class EIMZO {
                 cert,
                 (id) => {
                     this._loadedKey = cert;
-                    resolve({ cert, id });
+                    resolve({cert, id});
                 },
                 reject
             );
@@ -101,7 +104,7 @@ export default class EIMZO {
     async getCertInfo(cert) {
         return new Promise((resolve, reject) => {
             CAPIWS.callFunction(
-                { name: "get_certificate_info", arguments: [cert] },
+                {name: "get_certificate_info", arguments: [cert]},
                 (event, data) => {
                     if (data.success) {
                         resolve(data.certificate_info);
@@ -142,7 +145,7 @@ export default class EIMZO {
 
         const challenge = await request.get("api/eimzo/challenge").then(res => res);
 
-        const response = get(challenge,"data");
+        const response = get(challenge, "data");
 
         let sessiosResultId = sessionStorage.getItem(cert.serialNumber)
 
@@ -157,14 +160,14 @@ export default class EIMZO {
                 sessiosResultId = null;
             }
         }
-        if(!sessiosResultId){
+        if (!sessiosResultId) {
             const {id} = await this.loadKey(cert);
             sessiosResultId = id
-            sessionStorage.setItem(cert.serialNumber,id)
+            sessionStorage.setItem(cert.serialNumber, id)
             sessionStorage.setItem(`${cert.serialNumber}_time`, now.toString());
         }
         return new Promise((resolve, reject) => {
-            console.log('ENCODED_JSON',window.Base64.encode(content))
+            console.log('ENCODED_JSON', window.Base64.encode(content))
 
             CAPIWS.callFunction(
                 {
@@ -184,6 +187,7 @@ export default class EIMZO {
             );
         });
     }
+
     async createPkcs7(id, content, timestamper) {
         return new Promise((resolve, reject) => {
             client.createPkcs7(

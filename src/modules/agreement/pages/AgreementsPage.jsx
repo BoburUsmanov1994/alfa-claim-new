@@ -5,9 +5,8 @@ import {Button, Drawer, Space, Table, Tag} from "antd";
 import {PlusOutlined, EyeOutlined, EditOutlined, FileOutlined} from "@ant-design/icons"
 import Datagrid from "../../../containers/datagrid";
 import {URLS} from "../../../constants/url";
-import {useStore} from "../../../store";
 import {useNavigate} from "react-router-dom";
-import {get} from "lodash"
+import {get, isEqual} from "lodash"
 import {isNil} from "lodash/lang";
 import {CLAIM_STATUS_LIST} from "../../../constants";
 
@@ -75,10 +74,10 @@ const AgreementsPage = () => {
                             fixed: 'right',
                             width: 125,
                             render: (_id, _record) => <Space>
-                                <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
-                                        icon={<EyeOutlined/>}/>
-                                <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
-                                        icon={<EditOutlined/>}/>
+                                {!isEqual(get(_record,'status'),'draft') && <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
+                                        icon={<EyeOutlined/>}/>}
+                                {isEqual(get(_record,'status'),'draft') && <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
+                                        icon={<EditOutlined/>}/>}
                                 <Button onClick={() => setRecord(_record)} className={'cursor-pointer'}
                                         icon={<FileOutlined/>}/>
                             </Space>

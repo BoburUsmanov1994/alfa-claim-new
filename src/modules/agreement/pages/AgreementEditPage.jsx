@@ -129,10 +129,9 @@ const AgreementEditPage = () => {
 
 
     const onFinish = ({client, eventCircumstances, ...rest}) => {
-        patchRequest({
-            url: URLS.claimEdit,
+        mutate({
+            url: URLS.claimCreate,
             attributes: {
-                id,
                 ...rest,
                 eventCircumstances: {
                     ...eventCircumstances,
@@ -222,7 +221,7 @@ const AgreementEditPage = () => {
 
                     <Flex className={'mt-6'}>
                         <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
-                            {t('Сохранять')}
+                            {t('Подать заявление')}
                         </Button>
                         <Button danger type={'primary'} onClick={() => navigate('/claims')}>
                             {t('Отменить')}

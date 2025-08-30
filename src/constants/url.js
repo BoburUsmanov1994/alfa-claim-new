@@ -233,4 +233,5 @@ export const URLS = {
     claimShow: 'api/claim/show',
     claimHistory: 'api/claim/history',
     claimDocsAttach: 'api/claim/docs-attach',
+    claimDocsDetach: 'api/claim/docs-detach',
 }

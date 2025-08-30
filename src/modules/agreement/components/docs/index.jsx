@@ -1,7 +1,7 @@
 import React from 'react';
 import {Button, Col, Form, Input, Row, Space, Spin, Table, Typography} from "antd";
 import {useTranslation} from "react-i18next";
-import {EyeOutlined} from "@ant-design/icons";
+import {DeleteOutlined, EyeOutlined} from "@ant-design/icons";
 import {get} from "lodash"
 import dayjs from "dayjs";
 import CustomUpload from "../../../../components/custom-upload";
@@ -72,8 +72,24 @@ const Index = ({
                                             dataIndex: 'file',
                                             align: 'center',
                                             render: (text, record) => get(text, 'url') ?
-                                                <Button icon={<EyeOutlined/>} type={'link'}
-                                                        href={get(text, 'url')}/> : <CustomUpload
+                                                <Space><Button icon={<EyeOutlined/>} type={'link'}
+                                                               href={get(text, 'url')}/>
+                                                    <Button onClick={() => {
+                                                        mutate({
+                                                            url: URLS.claimDocsDetach,
+                                                            attributes: {
+                                                                claimNumber: parseInt(get(data, 'claimNumber')),
+                                                                materialId: get(record, 'id')
+                                                            }
+                                                        }, {
+                                                            onSuccess: () => {
+                                                                refresh()
+                                                            }
+                                                        })
+                                                    }} type={'dashed'} danger
+                                                            icon={
+                                                                <DeleteOutlined/>}>{t('Удалить файл')}</Button>
+                                                </Space> : <CustomUpload
                                                     setFile={(_file) => {
                                                         mutate({
                                                             url: URLS.claimDocsAttach,

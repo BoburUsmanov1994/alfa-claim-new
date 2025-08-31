@@ -14,6 +14,7 @@ const Index = ({
                    eventCircumstances,
                    countryList = [],
                    regions = [],
+                   data = {}
                }) => {
     const {t} = useTranslation();
     let {data: districts} = useGetAllQuery({
@@ -73,7 +74,8 @@ const Index = ({
                             </Form.Item>
                         </Col>
                         <Col xs={6}>
-                            <Form.Item initialValue={210} name={['eventCircumstances', 'countryId']}
+                            <Form.Item initialValue={parseInt(get(data, 'eventCircumstances.countryId', 210))}
+                                       name={['eventCircumstances', 'countryId']}
                                        label={t('Страна')}
                                        rules={[{required: true, message: t('Обязательное поле')}]}
                             >

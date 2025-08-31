@@ -9,6 +9,7 @@ import {useNavigate} from "react-router-dom";
 import {get, isEqual} from "lodash"
 import {isNil} from "lodash/lang";
 import {CLAIM_STATUS_LIST} from "../../../constants";
+import Docs from "../components/docs";
 
 
 const AgreementsPage = () => {
@@ -32,6 +33,7 @@ const AgreementsPage = () => {
                     responseListKeyName={'result.docs'}
                     showSearch={false}
                     formRef={formRef}
+                    actionRef={formRef}
                     defaultCollapsed
                     columns={[
                         {
@@ -42,6 +44,8 @@ const AgreementsPage = () => {
                         {
                             title: t('Страховой продукт'),
                             dataIndex: 'product',
+                            render: (text) => get(text, 'name'),
+                            width: 200,
                         },
                         {
                             title: t('Страхователь'),
@@ -65,7 +69,7 @@ const AgreementsPage = () => {
                         {
                             title: t('Статус'),
                             dataIndex: 'status',
-                            render: (text) => <Tag color={CLAIM_STATUS_LIST[text] || 'default'}>{text}</Tag>,
+                            render: (text) => <Tag color={CLAIM_STATUS_LIST[text] || 'default'}>{t(text)}</Tag>,
                             align: 'center',
                         },
                         {
@@ -136,21 +140,11 @@ const AgreementsPage = () => {
                     ]}
                     url={URLS.claimExternalList}/>
             </PageHeader>
-            <Drawer width={800} title={t('Документы')} open={!isNil(record)} onClose={() => setRecord(null)}>
-                <Table
-
-                    dataSource={get(record, 'photoVideoMaterials', [])}
-                    columns={[
-                        {
-                            title: t('ID'),
-                            dataIndex: 'file',
-                        },
-                        {
-                            title: t('URL-адрес файла'),
-                            dataIndex: 'url',
-                            align: 'center',
-                            render: (text) => <Button href={text} type={'link'}>{text}</Button>
-                        }]}/>
+            <Drawer width={1200}  title={t('Документы')} open={!isNil(record)} onClose={() => setRecord(null)}>
+                <Docs data={record} refresh={()=>{
+                    formRef.current?.reload();
+                    setRecord(null);
+                }} />
             </Drawer>
         </>
     );

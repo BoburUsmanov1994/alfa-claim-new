@@ -51,4 +51,5 @@ export const CLAIM_STATUS_LIST = {
     accepted: 'green',
     paid: 'cyan',
     denied: 'red',
+    docs_collecting:'orange',
 }

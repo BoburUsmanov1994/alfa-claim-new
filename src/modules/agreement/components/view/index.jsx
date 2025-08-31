@@ -34,6 +34,7 @@ import {request} from "../../../../services/api";
 import ApplicantForm from "../applicant-form";
 import FileForm from "../file-form";
 import EventForm from "../event-form";
+import numeral from "numeral"
 
 
 const Index = ({
@@ -214,7 +215,7 @@ const Index = ({
 
     return (
         <>
-            <Form onFinish={onFinish} layout="vertical" initialValues={{
+            <Form disabled={!isEqual(get(data,'status'),'draft')} onFinish={onFinish} layout="vertical" initialValues={{
                 client: get(data, 'applicant.person') ? 'person' : 'organization',
                 ...data,
                 applicant: {
@@ -235,33 +236,33 @@ const Index = ({
                             <Row gutter={16}>
                                 <Col span={6}>
                                     <Form.Item label={t('Статус')}>
-                                        <Input value={get(data, 'status')} disabled/>
+                                        <Input value={t(get(data, 'status'))} disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label={t('Регистрационный номер')}>
-                                        <Input disabled/>
+                                        <Input value={get(data,'regNumber')} disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label={t('Дата и время регистрации')}>
-                                        <DatePicker className={'w-full'} value={dayjs(get(data, 'createdAt'))}
+                                        <DatePicker className={'w-full'} value={dayjs(get(data, 'regDate'))}
                                                     disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label={t('Должность сотрудника')}>
-                                        <Input disabled/>
+                                        <Input value={get(data,'employeeRole')} disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label={t('Ф.И.О. сотрудника')}>
-                                        <Input disabled/>
+                                        <Input value={get(data,'employee.fullname')} disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
                                     <Form.Item label={t('Контактный номер')}>
-                                        <Input disabled/>
+                                        <Input value={get(data,'employeeContactNumber')} disabled/>
                                     </Form.Item>
                                 </Col>
                                 <Col span={6}>
@@ -367,54 +368,64 @@ const Index = ({
                     </Col>
 
                     <Col span={24}>
-                        <Card title={t('Заявленный ущерб и выплаты:')} bordered className={'mb-4'}>
-                            <Row gutter={16}>
-                                <Col span={6}>
-                                    <Form.Item label={t(' Общая сумма ущерба')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Выплаченное страховое возмещение')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Заявленный ущерб по жизни')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Выплата по жизни')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Заявленный ущерб по здоровью')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Выплата по здоровью')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Заявленный ущерб авто')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Выплата по имуществу')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                                <Col span={6}>
-                                    <Form.Item label={t('Заявленный ущерб имуществу')}>
-                                        <Input disabled/>
-                                    </Form.Item>
-                                </Col>
-                            </Row>
+                        <Card className={'mb-4'} bordered title={t('Заявленный ущерб и выплаты')}>
+                                <Row gutter={16} align="top">
+                                    <Col span={12}>
+                                        <Row gutter={16}>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Общая сумма ущерба')}>
+                                                    <Input value={numeral(get(data, 'totalDamageSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Заявленный ущерб по жизни')}>
+                                                    <Input value={numeral(get(data, 'lifeDamageSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Заявленный ущерб по здоровью')}>
+                                                    <Input value={numeral(get(data, 'healthDamageSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Заявленный ущерб авто')}>
+                                                    <Input value={numeral(get(data, 'vehicleDamageSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Заявленный ущерб имуществу')}>
+                                                    <Input value={numeral(get(data, 'otherPropertyDamageSum')).format('0,0.00')}
+                                                           disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                        </Row>
+                                    </Col>
+                                    <Col span={12}>
+                                        <Row gutter={16}>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Выплаченное страховое возмещение')}>
+                                                    <Input value={numeral(get(data, 'totalPaymentSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Выплата по жизни')}>
+                                                    <Input value={numeral(get(data, 'lifePaymentSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Выплата по здоровью')}>
+                                                    <Input value={numeral(get(data, 'healthPaymentSum')).format('0,0.00')} disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                            <Col span={24}>
+                                                <Form.Item label={t('Выплата по имуществу')}>
+                                                    <Input value={numeral(get(data, 'otherPropertyPaymentSum')).format('0,0.00')}
+                                                           disabled/>
+                                                </Form.Item>
+                                            </Col>
+                                        </Row>
+                                    </Col>
+                                </Row>
                         </Card>
                     </Col>
                     <Col span={24}>
@@ -427,7 +438,7 @@ const Index = ({
                     </Col>
                     <Col span={24}>
                         <Card title={t('Обстоятельства события:')} className={'mb-4'} bordered>
-                            <EventForm eventCircumstances={eventCircumstances} regions={regions}
+                            <EventForm data={data} eventCircumstances={eventCircumstances} regions={regions}
                                        countryList={countryList}/>
                         </Card>
                     </Col>
@@ -547,7 +558,7 @@ const Index = ({
                                 label={t("Текст запроса")}
                                 name={['editRequest', 'text']}
                             >
-                                <Input.TextArea/>
+                                <Input.TextArea disabled={false}/>
                             </Form.Item>
                         </Col>
                         <Col span={8}>
@@ -574,11 +585,11 @@ const Index = ({
                     </Row>
                 </Card>
                 <Flex className={'mt-6'}>
-                    <Button onClick={() => (submitType.current = true)} className={'mr-3'} type="primary"
+                    <Button disabled={false} onClick={() => (submitType.current = true)} className={'mr-3'} type="primary"
                             htmlType={'submit'} name={'save'}>
                         {t('Дополнить заявление')}
                     </Button>
-                    <Button danger type={'primary'} onClick={() => navigate('/claims')}>
+                    <Button disabled={false} danger type={'primary'} onClick={() => navigate('/claims')}>
                         {t('Отмена')}
                     </Button>
                 </Flex>

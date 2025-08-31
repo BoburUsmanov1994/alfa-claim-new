@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {PageHeader} from "@ant-design/pro-components";
 import {useTranslation} from "react-i18next";
 import {
@@ -41,6 +41,7 @@ const AgreementEditPage = () => {
     const {id} = useParams();
     const {t} = useTranslation();
     const navigate = useNavigate();
+    const submitType = useRef(null);
     const [form] = Form.useForm();
     const [formLifeDamage] = Form.useForm();
     const [formHealthDamage] = Form.useForm();
@@ -58,7 +59,6 @@ const AgreementEditPage = () => {
     let {data, isLoading} = useGetAllQuery({
         key: [KEYS.claimShow, id],
         url: `${URLS.claimShow}?id=${id}`,
-        enabled: !!(id)
     });
 
     let {data: residentTypes, isLoading: isLoadingResident} = useGetAllQuery({
@@ -129,26 +129,51 @@ const AgreementEditPage = () => {
 
 
     const onFinish = ({client, eventCircumstances, ...rest}) => {
-        mutate({
-            url: URLS.claimCreate,
-            attributes: {
-                ...rest,
-                eventCircumstances: {
-                    ...eventCircumstances,
-                    countryId: String(get(eventCircumstances, 'countryId'))
-                },
-                photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
-                lifeDamage,
-                healthDamage,
-                vehicleDamage,
-                otherPropertyDamage
-            }
-        }, {
-            onSuccess: () => {
-                form.resetFields();
-                navigate('/agreements')
-            }
-        })
+        if(submitType?.current){
+            mutate({
+                url: URLS.claimCreate,
+                attributes: {
+                    ...rest,
+                    eventCircumstances: {
+                        ...eventCircumstances,
+                        countryId: String(get(eventCircumstances, 'countryId'))
+                    },
+                    photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
+                    lifeDamage,
+                    healthDamage,
+                    vehicleDamage,
+                    otherPropertyDamage
+                }
+            }, {
+                onSuccess: () => {
+                    form.resetFields();
+                    navigate('/agreements')
+                }
+            })
+        }else{
+            patchRequest({
+                url: URLS.claimEdit,
+                attributes: {
+                    ...rest,
+                    id,
+                    eventCircumstances: {
+                        ...eventCircumstances,
+                        countryId: String(get(eventCircumstances, 'countryId'))
+                    },
+                    photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
+                    lifeDamage,
+                    healthDamage,
+                    vehicleDamage,
+                    otherPropertyDamage
+                }
+            }, {
+                onSuccess: () => {
+                    form.resetFields();
+                    navigate('/agreements')
+                }
+            })
+        }
+
     };
     useEffect(() => {
         if (!isEmpty(get(data, 'data.result.photoVideoMaterials', []))) {
@@ -214,13 +239,16 @@ const AgreementEditPage = () => {
 
                     </Card>
                     <Card className={'mb-4'} title={t('Обстоятельства события:')} bordered>
-                        <EventForm eventCircumstances={eventCircumstances} regions={regions} countryList={countryList}/>
+                        <EventForm data={get(data,'data.result')} eventCircumstances={eventCircumstances} regions={regions} countryList={countryList}/>
                     </Card>
                     <FileForm setFiles={setFiles} files={files}/>
 
 
                     <Flex className={'mt-6'}>
-                        <Button className={'mr-2'} type="primary" htmlType={'submit'} name={'save'}>
+                        <Button onClick={() => (submitType.current = false)} className={'mr-2'} type="default" htmlType={'submit'} name={'edit'}>
+                            {t('Сохранить как черновик')}
+                        </Button>
+                        <Button onClick={() => (submitType.current = true)} className={'mr-2'} type="primary" htmlType={'submit'} name={'send'}>
                             {t('Подать заявление')}
                         </Button>
                         <Button danger type={'primary'} onClick={() => navigate('/claims')}>

@@ -70,6 +70,7 @@ const AgreementViewPage = () => {
                                 {
                                     title: t('Типы операций'),
                                     dataIndex: 'operation',
+                                    render: operation => t(operation)
                                 }
                             ]} url={`${URLS.claimHistory}?id=${id}`}/>
                         }

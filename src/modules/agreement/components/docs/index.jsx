@@ -7,6 +7,7 @@ import dayjs from "dayjs";
 import CustomUpload from "../../../../components/custom-upload";
 import {usePutQuery} from "../../../../hooks/api";
 import {URLS} from "../../../../constants/url";
+import {isNil} from "lodash/lang";
 
 const Index = ({
                    data,
@@ -65,7 +66,7 @@ const Index = ({
                                         {
                                             title: t('Дата предоставления'),
                                             dataIndex: 'requestDate',
-                                            render: (text) => dayjs(text).format('YYYY-MM-DD'),
+                                            render: (text) => text ? dayjs(text).format('YYYY-MM-DD') : '',
                                         },
                                         {
                                             title: t('Файл'),
@@ -116,8 +117,8 @@ const Index = ({
                                         {
                                             title: t('Дата проверки'),
                                             dataIndex: 'checkDate',
-                                            render: (text) => dayjs(text).format('YYYY-MM-DD'),
                                             align: 'center',
+                                            render: (text) => text ? dayjs(text).format('YYYY-MM-DD') : '',
                                         },
                                         {
                                             title: t('Кем проверено'),
@@ -127,8 +128,8 @@ const Index = ({
                                         {
                                             title: t('Результат проверки'),
                                             dataIndex: 'checkResult',
-                                            render: (text) => text ? 'принят' : 'не принят',
                                             align: 'center',
+                                            render: (text) => isNil(text) ? 'Не проверено' : text ? 'принят' : 'не принят'
                                         },
                                         {
                                             title: t('Комментарий'),

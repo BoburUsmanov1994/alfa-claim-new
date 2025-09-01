@@ -21,7 +21,7 @@ import {useNavigate} from "react-router-dom";
 import MaskedInput from "../../../components/masked-input";
 import {useDeleteQuery, useGetAllQuery, usePostQuery} from "../../../hooks/api";
 import {URLS} from "../../../constants/url";
-import {get, isEqual, toUpper} from "lodash";
+import {find, get, isEqual, toUpper} from "lodash";
 import dayjs from "dayjs";
 import {PlusOutlined, ReloadOutlined, InboxOutlined, DeleteOutlined} from "@ant-design/icons";
 import {KEYS} from "../../../constants/key";
@@ -62,7 +62,11 @@ const AgreementCreatePage = () => {
     });
     regions = getSelectOptionsListFromData(get(regions, `data.result`, []), 'id', 'name')
 
-
+    let {data: areaTypes} = useGetAllQuery({
+        key: KEYS.areaTypes,
+        url: `${URLS.areaTypes}`,
+    });
+    areaTypes = getSelectOptionsListFromData(get(areaTypes, `data.result`, []), 'id', 'name')
     let {data: ownershipForms, isLoading: isLoadingOwnershipForms} = useGetAllQuery({
         key: KEYS.ownershipForms,
         url: URLS.ownershipForms,
@@ -87,6 +91,8 @@ const AgreementCreatePage = () => {
                 _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
                 _form.setFieldValue([...type, 'districtId'], get(result, 'districtId'))
                 form.setFieldValue([...type, 'address'], get(result, 'address'))
+                _form.setFieldValue([...type, 'passportData', 'givenPlace'], get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'docgiveplace'))
+                _form.setFieldValue([...type, 'passportData', 'issueDate'], dayjs(get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'datebegin')))
             }
         })
     }
@@ -173,7 +179,7 @@ const AgreementCreatePage = () => {
                     </Card>
 
                     <Card className={'mb-4'} title={t('Обстоятельства события:')} bordered>
-                        <EventForm eventCircumstances={eventCircumstances} countryList={countryList} regions={regions} />
+                        <EventForm areaTypes={areaTypes} eventCircumstances={eventCircumstances} countryList={countryList} regions={regions} />
                     </Card>
                     <FileForm setFiles={setFiles} files={files} />
 

@@ -50,6 +50,7 @@ const Index = ({
                 </Col>
                 <Col xs={18}>
                     {isEqual(client, 'person') && <Row gutter={16}>
+
                         <Col xs={6}>
                             <Form.Item
                                 label={t("Серия паспорта")}
@@ -89,6 +90,7 @@ const Index = ({
                         </Col>
                     </Row>}
                     {isEqual(client, 'organization') && <Row gutter={16}>
+
                         <Col xs={6}>
                             <Form.Item
                                 label={t("ИНН")}
@@ -111,10 +113,24 @@ const Index = ({
                 </Col>
             </Row>
             {isEqual(client, 'person') ? <Row gutter={16}>
+                <Col xs={6}>
+                    <Form.Item name={['applicant', 'person', 'passportData', 'givenPlace']}
+                               label={t(' Кем выдан паспорт')}
+                    >
+                        <Input/>
+                    </Form.Item>
+                </Col>
+                <Col xs={6}>
+                    <Form.Item name={['applicant', 'person', 'passportData', 'issueDate']}
+                               label={t('Дата выдачи паспорта')}
+                    >
+                        <DatePicker format={"DD.MM.YYYY"} className={'w-full'}/>
+                    </Form.Item>
+                </Col>
                 <Col span={6}>
                     <Form.Item name={['applicant', 'person', 'birthDate']} label={t('Дата рождения')}
                                rules={[{required: true, message: t('Обязательное поле')}]}>
-                        <DatePicker className={'w-full'}/>
+                        <DatePicker format={"DD.MM.YYYY"} className={'w-full'}/>
                     </Form.Item>
                 </Col>
                 <Col xs={6}>

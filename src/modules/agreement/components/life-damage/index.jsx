@@ -143,7 +143,7 @@ const Index = ({
                             <Col span={6}>
                                 <Form.Item name={['person', 'birthDate']} label={t('Дата рождения')}
                                            rules={[{required: true, message: t('Обязательное поле')}]}>
-                                    <DatePicker className={'w-full'}/>
+                                    <DatePicker format={"DD.MM.YYYY"} className={'w-full'}/>
                                 </Form.Item>
                             </Col>
                             <Col xs={6}>

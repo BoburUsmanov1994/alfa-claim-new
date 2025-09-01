@@ -14,7 +14,8 @@ const Index = ({
                    eventCircumstances,
                    countryList = [],
                    regions = [],
-                   data = {}
+                   data = {},
+                   areaTypes = []
                }) => {
     const {t} = useTranslation();
     let {data: districts} = useGetAllQuery({
@@ -46,7 +47,7 @@ const Index = ({
                             </Form.Item>
                         </Col>
                         <Col xs={6}>
-                            <Form.Item name={['eventCircumstances', 'applicantStatus']} label={t('Ваш статус')}
+                            <Form.Item name={'applicantStatus'} label={t('Ваш статус')}
                                        rules={[{required: true, message: t('Обязательное поле')}]}>
                                 <Radio.Group options={[{
                                     value: 'страхователь',
@@ -63,7 +64,7 @@ const Index = ({
                             <Form.Item name={['eventCircumstances', 'eventDateTime']}
                                        label={t('Дата и время события')}
                                        rules={[{required: true, message: t('Обязательное поле')}]}>
-                                <DatePicker className={'w-full'} showTime format="YYYY-MM-DD HH:mm:ss"/>
+                                <DatePicker className={'w-full'} showTime format="DD.MM.YYYY HH:mm:ss"/>
                             </Form.Item>
                         </Col>
                         <Col xs={6}>
@@ -71,6 +72,13 @@ const Index = ({
                                        rules={[{required: true, message: t('Обязательное поле')}]}>
 
                                 <Input/>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={6}>
+                            <Form.Item name={['eventCircumstances', 'areaTypeId']} label={t('Тип местности')}
+                                       rules={[{required: true, message: t('Обязательное поле')}]}>
+
+                                <Select options={areaTypes} allowClear/>
                             </Form.Item>
                         </Col>
                         <Col xs={6}>

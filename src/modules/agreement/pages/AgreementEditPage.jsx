@@ -21,7 +21,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import MaskedInput from "../../../components/masked-input";
 import {useDeleteQuery, useGetAllQuery, usePostQuery, usePutQuery} from "../../../hooks/api";
 import {URLS} from "../../../constants/url";
-import {get, isEmpty, isEqual, toUpper} from "lodash";
+import {find, get, isEmpty, isEqual, toUpper} from "lodash";
 import dayjs from "dayjs";
 import {PlusOutlined, ReloadOutlined, InboxOutlined, DeleteOutlined} from "@ant-design/icons";
 import {KEYS} from "../../../constants/key";
@@ -83,6 +83,12 @@ const AgreementEditPage = () => {
         key: KEYS.ownershipForms,
         url: URLS.ownershipForms,
     });
+
+    let {data: areaTypes} = useGetAllQuery({
+        key: KEYS.areaTypes,
+        url: `${URLS.areaTypes}`,
+    });
+    areaTypes = getSelectOptionsListFromData(get(areaTypes, `data.result`, []), 'id', 'name')
     ownershipForms = getSelectOptionsListFromData(get(ownershipForms, `data.result`, []), 'id', 'name')
 
     const getPersonInfo = (_form = form, type = ['applicant', 'person']) => {
@@ -103,6 +109,8 @@ const AgreementEditPage = () => {
                 _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
                 _form.setFieldValue([...type, 'districtId'], get(result, 'districtId'))
                 _form.setFieldValue([...type, 'address'], get(result, 'address'))
+                _form.setFieldValue([...type, 'passportData', 'givenPlace'], get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'docgiveplace'))
+                _form.setFieldValue([...type, 'passportData', 'issueDate'], dayjs(get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'datebegin')))
             }
         })
     }
@@ -129,16 +137,17 @@ const AgreementEditPage = () => {
 
 
     const onFinish = ({client, eventCircumstances, ...rest}) => {
-        if(submitType?.current){
+        if (submitType?.current) {
             mutate({
                 url: URLS.claimCreate,
                 attributes: {
                     ...rest,
+                    id: id,
                     eventCircumstances: {
                         ...eventCircumstances,
                         countryId: String(get(eventCircumstances, 'countryId'))
                     },
-                    photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
+                    photoVideoMaterials: files?.map(({_id, file, url}) => ({file: _id ?? file, url})),
                     lifeDamage,
                     healthDamage,
                     vehicleDamage,
@@ -150,7 +159,7 @@ const AgreementEditPage = () => {
                     navigate('/agreements')
                 }
             })
-        }else{
+        } else {
             patchRequest({
                 url: URLS.claimEdit,
                 attributes: {
@@ -160,7 +169,7 @@ const AgreementEditPage = () => {
                         ...eventCircumstances,
                         countryId: String(get(eventCircumstances, 'countryId'))
                     },
-                    photoVideoMaterials: files?.map(({_id,file, url}) => ({file: _id ?? file, url})),
+                    photoVideoMaterials: files?.map(({_id, file, url}) => ({file: _id ?? file, url})),
                     lifeDamage,
                     healthDamage,
                     vehicleDamage,
@@ -215,7 +224,12 @@ const AgreementEditPage = () => {
                             person: {
                                 ...get(data, 'data.result.applicant.person'),
                                 birthDate: dayjs(get(data, 'data.result.applicant.person.birthDate')),
+                                passportData: {
+                                    ...get(data, 'data.result.applicant.person.passportData'),
+                                    issueDate: dayjs(get(data, 'data.result.applicant.person.passportData.issueDate'))
+                                }
                             },
+
                         },
                         eventCircumstances: {
                             ...get(data, 'data.result.eventCircumstances'),
@@ -239,16 +253,19 @@ const AgreementEditPage = () => {
 
                     </Card>
                     <Card className={'mb-4'} title={t('Обстоятельства события:')} bordered>
-                        <EventForm data={get(data,'data.result')} eventCircumstances={eventCircumstances} regions={regions} countryList={countryList}/>
+                        <EventForm areaTypes={areaTypes} data={get(data, 'data.result')}
+                                   eventCircumstances={eventCircumstances} regions={regions} countryList={countryList}/>
                     </Card>
                     <FileForm setFiles={setFiles} files={files}/>
 
 
                     <Flex className={'mt-6'}>
-                        <Button onClick={() => (submitType.current = false)} className={'mr-2'} type="default" htmlType={'submit'} name={'edit'}>
+                        <Button onClick={() => (submitType.current = false)} className={'mr-2'} type="default"
+                                htmlType={'submit'} name={'edit'}>
                             {t('Сохранить как черновик')}
                         </Button>
-                        <Button onClick={() => (submitType.current = true)} className={'mr-2'} type="primary" htmlType={'submit'} name={'send'}>
+                        <Button onClick={() => (submitType.current = true)} className={'mr-2'} type="primary"
+                                htmlType={'submit'} name={'send'}>
                             {t('Подать заявление')}
                         </Button>
                         <Button danger type={'primary'} onClick={() => navigate('/claims')}>

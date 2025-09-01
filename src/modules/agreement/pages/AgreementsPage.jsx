@@ -10,6 +10,7 @@ import {get, isEqual} from "lodash"
 import {isNil} from "lodash/lang";
 import {CLAIM_STATUS_LIST} from "../../../constants";
 import Docs from "../components/docs";
+import numeral from "numeral";
 
 
 const AgreementsPage = () => {
@@ -63,8 +64,9 @@ const AgreementsPage = () => {
                         },
                         {
                             title: t('Сумма заявленного ущерба'),
-                            dataIndex: 'agreementNumber',
+                            dataIndex: 'totalDamageSum',
                             align: 'center',
+                            render: (text) => numeral(text).format('0,0.00')
                         },
                         {
                             title: t('Статус'),

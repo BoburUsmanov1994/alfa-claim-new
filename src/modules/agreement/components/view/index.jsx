@@ -16,7 +16,7 @@ import {
     Upload,
 } from "antd";
 import {useTranslation} from "react-i18next";
-import {get, includes, isEmpty, isEqual, toUpper} from "lodash"
+import {get, includes, isEmpty, isEqual, toUpper,find} from "lodash"
 import dayjs from "dayjs";
 import MaskedInput from "../../../../components/masked-input";
 import {DeleteOutlined, InboxOutlined, PlusOutlined, ReloadOutlined} from "@ant-design/icons";
@@ -108,6 +108,8 @@ const Index = ({
                 _form.setFieldValue([...type, 'regionId'], get(result, 'regionId'))
                 _form.setFieldValue([...type, 'districtId'], get(result, 'districtId'))
                 _form.setFieldValue([...type, 'address'], get(result, 'address'))
+                _form.setFieldValue([...type, 'passportData', 'givenPlace'], get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'docgiveplace'))
+                _form.setFieldValue([...type, 'passportData', 'issueDate'], dayjs(get(find(get(result, 'documents', []), _item => isEqual(get(_item, 'document'), `${toUpper(_form.getFieldValue([...type, 'passportData', 'seria']))}${_form.getFieldValue([...type, 'passportData', 'number'])}`)), 'datebegin')))
             }
         })
     }
@@ -223,6 +225,10 @@ const Index = ({
                     person: {
                         ...get(data, 'applicant.person'),
                         birthDate: dayjs(get(data, 'applicant.person.birthDate')),
+                        passportData: {
+                            ...get(data, 'applicant.person.passportData'),
+                            issueDate: dayjs(get(data, 'data.applicant.person.passportData.issueDate'))
+                        }
                     },
                 },
                 eventCircumstances: {

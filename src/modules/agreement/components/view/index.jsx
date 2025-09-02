@@ -578,14 +578,14 @@ const Index = ({
                             <Form.Item
                                 label={t("Кем принято решение")}
                             >
-                                <Input disabled/>
+                                <Input value={get(data,'editRequest.whoDecision')} disabled/>
                             </Form.Item>
                         </Col>
                         <Col span={8}>
                             <Form.Item
                                 label={t("Комментарий")}
                             >
-                                <Input disabled/>
+                                <Input value={get(data,'editRequest.comment')} disabled/>
                             </Form.Item>
                         </Col>
                     </Row>

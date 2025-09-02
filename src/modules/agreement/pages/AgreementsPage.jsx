@@ -50,17 +50,21 @@ const AgreementsPage = () => {
                         },
                         {
                             title: t('Страхователь'),
-                            dataIndex: 'agreementNumber',
+                            dataIndex: 'insurant',
+                            width: 200,
+                            render: (text) => get(text, 'organization.name', `${get(text, 'person.fullName.lastname', '-')} ${get(text, 'person.fullName.firstname', '-')} ${get(text, 'person.fullName.middlename', '-')}`),
                         },
                         {
                             title: t('Заявитель'),
                             dataIndex: 'applicant',
                             render: (text) => get(text, 'person.fullName.lastname') ? `${get(text, 'person.fullName.lastname')} ${get(text, 'person.fullName.firstname')} ${get(text, 'person.fullName.middlename')}` : get(text, 'organization.name'),
-                            width: 300
+                            width: 225
                         },
                         {
                             title: t('Виновное лицо'),
-                            dataIndex: 'agreementNumber',
+                            dataIndex: 'responsibleForDamage',
+                            width: 225,
+                            render: (text) => get(text, 'person.fullName.lastname') ? `${get(text, 'person.fullName.lastname')} ${get(text, 'person.fullName.firstname')} ${get(text, 'person.fullName.middlename')}` : get(text, 'organization.name'),
                         },
                         {
                             title: t('Сумма заявленного ущерба'),
@@ -80,10 +84,12 @@ const AgreementsPage = () => {
                             fixed: 'right',
                             width: 125,
                             render: (_id, _record) => <Space>
-                                {!isEqual(get(_record,'status'),'draft') && <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
-                                        icon={<EyeOutlined/>}/>}
-                                {isEqual(get(_record,'status'),'draft') && <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
-                                        icon={<EditOutlined/>}/>}
+                                {!isEqual(get(_record, 'status'), 'draft') &&
+                                    <Button onClick={() => navigate(`/claims/view/${_id}`)} className={'cursor-pointer'}
+                                            icon={<EyeOutlined/>}/>}
+                                {isEqual(get(_record, 'status'), 'draft') &&
+                                    <Button onClick={() => navigate(`/claims/edit/${_id}`)} className={'cursor-pointer'}
+                                            icon={<EditOutlined/>}/>}
                                 <Button onClick={() => setRecord(_record)} className={'cursor-pointer'}
                                         icon={<FileOutlined/>}/>
                             </Space>
@@ -142,11 +148,11 @@ const AgreementsPage = () => {
                     ]}
                     url={URLS.claimExternalList}/>
             </PageHeader>
-            <Drawer width={1200}  title={t('Документы')} open={!isNil(record)} onClose={() => setRecord(null)}>
-                <Docs data={record} refresh={()=>{
+            <Drawer width={1200} title={t('Документы')} open={!isNil(record)} onClose={() => setRecord(null)}>
+                <Docs data={record} refresh={() => {
                     formRef.current?.reload();
                     setRecord(null);
-                }} />
+                }}/>
             </Drawer>
         </>
     );

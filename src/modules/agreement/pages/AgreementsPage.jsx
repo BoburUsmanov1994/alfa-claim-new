@@ -50,7 +50,7 @@ const AgreementsPage = () => {
                         },
                         {
                             title: t('Страхователь'),
-                            dataIndex: 'insurant',
+                            dataIndex: 'insurantInfo',
                             width: 200,
                             render: (text) => get(text, 'organization.name', `${get(text, 'person.fullName.lastname', '-')} ${get(text, 'person.fullName.firstname', '-')} ${get(text, 'person.fullName.middlename', '-')}`),
                         },

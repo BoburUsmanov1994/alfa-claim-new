@@ -571,7 +571,7 @@ const Index = ({
                             <Form.Item
                                 label={t("Результат")}
                             >
-                                <Input disabled/>
+                                <Input value={get(data,'editRequest.result')} disabled/>
                             </Form.Item>
                         </Col>
                         <Col span={8}>
